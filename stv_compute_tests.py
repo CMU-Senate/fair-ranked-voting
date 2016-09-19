@@ -24,18 +24,18 @@ def runTestWithOneCandidateOneSeatWinner():
 	candidate = "Candidate"
 	num_ballots = 10
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		ballot.set_candidate_with_rank(candidate, 1)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 1
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
@@ -46,19 +46,19 @@ def runTestWithOneCandidateOneSeatNoConfidence():
 	candidate = "Candidate"
 	num_ballots = 10
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 1)
 		ballot.set_candidate_with_rank(candidate, 2)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 1
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
@@ -70,7 +70,7 @@ def runTestWithTwoCandidatesOneSeat():
 	candidateTwo = "Candidate Two"
 	num_ballots = 10
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		if i < .4 * num_ballots:
@@ -78,13 +78,13 @@ def runTestWithTwoCandidatesOneSeat():
 		else:
 			ballot.set_candidate_with_rank(candidateTwo, 1)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 1
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
@@ -95,18 +95,18 @@ def runTestWithOneCandidateTwoSeats():
 	candidate = "Candidate"
 	num_ballots = 10
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		ballot.set_candidate_with_rank(candidate, 1)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 2
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
@@ -118,7 +118,7 @@ def runTestWithTwoCandidatesTwoSeats():
 	candidateTwo = "Candidate Two"
 	num_ballots = 10
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		if i < .4 * num_ballots:
@@ -128,13 +128,13 @@ def runTestWithTwoCandidatesTwoSeats():
 			ballot.set_candidate_with_rank(candidateTwo, 1)
 			ballot.set_candidate_with_rank(candidateOne, 2)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 2
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
@@ -147,7 +147,7 @@ def runTestWithThreeCandidatesTwoSeatsTiebreak():
 	candidateThree = "Candidate Three"
 	num_ballots = 100
 	ballots = set()
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		if i < .32 * num_ballots:
@@ -159,18 +159,18 @@ def runTestWithThreeCandidatesTwoSeatsTiebreak():
 		else:
 			ballot.set_candidate_with_rank(candidateThree, 1)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 2
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
-	
-def runTest2000Election():
-	description = "2000 Election Test"
+
+def runTest2000ElectionApproximation():
+	description = "2000 Election Approximation Test"
 	print(description)
 	print("Generating ballots...")
 	nader = "Ralph Nader"
@@ -178,11 +178,11 @@ def runTest2000Election():
 	gore = "Al Gore"
 	num_ballots = 100000
 	ballots = set()
-	
+
 	naderPercentage = .03
 	bushPercentage = .49
 	gorePercentage = .48
-	
+
 	for i in xrange(num_ballots):
 		ballot = Ballot()
 		if i < naderPercentage * num_ballots:
@@ -195,14 +195,15 @@ def runTest2000Election():
 			ballot.set_candidate_with_rank(gore, 1)
 			ballot.set_candidate_with_rank(nader, 2)
 		ballots.add(ballot)
-		
+
 	print("Running election...")
 	election = Election()
 	election.name = description
 	election.seats = 1
 	election.ballots = ballots
-	
+
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-runTest2000Election()
+runTest2000ElectionApproximation()
+

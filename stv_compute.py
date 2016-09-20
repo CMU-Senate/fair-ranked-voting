@@ -343,10 +343,13 @@ class Election_Counter:
                 
             self.verbose_print("%s's surplus of %.2f votes will be redistributed amongst their ballots, each worth %.2f votes." % (candidate, surplus, surplus_multiplier))
         
-    def declare_loser(self, candidate, verbose=False):
+    def declare_loser(self, candidate):
         """
         Marks a candidate as losing, removing them from the election and
         redistributing all of their votes to their ballots' next preferences.
+        
+        Parameters:
+            - candidate: the candidate to declare loser
         """
         self.losing_candidates.add(candidate)
         candidate_ballots = self._ballots_for_candidate.pop(candidate)
@@ -445,7 +448,7 @@ class Election:
             else:
                 # Find the candidate(s) with the fewest votes in the current round            
                 candidates_to_eliminate = counter.candidates_with_fewest_votes()
-                assert len(candidates_to_eliminate) > 0
+                assert len(candidates_to_eliminate) >= 1
                 
                 # If multiple candidates have the fewest votes in a round, choose the candidate with the fewest votes in the previous round
                 # Repeat if multiple candidates remain tied with the fewest votes
@@ -454,10 +457,25 @@ class Election:
                     candidates_to_eliminate = counter.candidates_with_fewest_votes(limit_to_candidates=candidates_to_eliminate, voting_round=previous_voting_round)
                     previous_voting_round -= 1
                 
-                # If multiple candidates are tied for fewest votes in all previous rounds, choose a random candidate to eliminate
                 # If only one candidate remains, choose the only candidate from the set
-                losing_candidate = random.sample(candidates_to_eliminate, 1).pop()
-                counter.declare_loser(losing_candidate)
+                if len(candidates_to_eliminate) == 1:
+                    (losing_candidate,) = candidates_to_eliminate
+                    counter.declare_loser(losing_candidate)
+                
+                # If multiple candidates are still tied for fewest votes,
+                # a random candidate would need to be eliminated.
+                else:
+                    remaining_candidates = counter.active_candidates()
+                    is_deciding_winner = len(remaining_candidates) - 1 + len(counter.winning_candidates) <= self.seats
+                    
+                    if is_deciding_winner:
+                        print("\n*** Manual Tiebreak Required ***")
+                        print("The following are tied for fewest votes in the current round and all previous rounds. Randomly eliminating a candidate would automatically declare the other(s) winner, so it is left up to the election committee to break the tie.")
+                        print(candidates_to_eliminate)
+                        break
+                    else:
+                        losing_candidate = random.sample(candidates_to_eliminate, 1).pop()
+                        counter.declare_loser(losing_candidate)
         
         if verbose:
             print("\n*** Conclusion ***")

@@ -1,4 +1,4 @@
-# stv_compute.py: computes election results using single transferable vote
+# stv_compute_tests.py: computes election results using single transferable vote
 # Copyright (C) 2016 Carnegie Mellon Student Senate. Created by Devin Gund.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -169,6 +169,96 @@ def runTestWithThreeCandidatesTwoSeatsTiebreak():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
+def runTestWithRandomTiebreakBetweenTwoLosers():
+	description = "Random Tiebreak Between Losing Candidates Test"
+	print(description)
+	print("Generating ballots...")
+	candidateOne = "Candidate One"
+	candidateTwo = "Candidate Two"
+	candidateThree = "Candidate Three"
+	candidateFour = "Candidate Four"
+	num_ballots = 15
+	ballots = set()
+	
+	# Candidate-One-preferred ballots
+	for i in xrange(6):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateOne, 1)
+		ballots.add(ballot)
+	
+	# Candidate-Two-preferred ballots
+	for i in xrange(5):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateTwo, 1)
+		ballots.add(ballot)
+	
+	# Candidate-Three-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateThree, 1)
+		ballot.set_candidate_with_rank(candidateFour, 2)
+		ballots.add(ballot)
+	
+	# Candidate-Four-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateFour, 1)
+		ballot.set_candidate_with_rank(candidateThree, 2)
+		ballots.add(ballot)
+
+	print("Running election...")
+	election = Election()
+	election.name = description
+	election.seats = 2
+	election.ballots = ballots
+
+	winners = election.compute_winners(verbose=True)
+	print(winners)
+
+def runTestWithRandomTiebreakToDetermineWinner():
+	description = "Random Tiebreak Required To Determine Winner Test"
+	print(description)
+	print("Generating ballots...")
+	candidateOne = "Candidate One"
+	candidateTwo = "Candidate Two"
+	candidateThree = "Candidate Three"
+	candidateFour = "Candidate Four"
+	num_ballots = 15
+	ballots = set()
+		
+	# Candidate-One-preferred ballots
+	for i in xrange(6):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateOne, 1)
+		ballots.add(ballot)
+		
+	# Candidate-Two-preferred ballots
+	for i in xrange(3):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateTwo, 1)
+		ballots.add(ballot)
+		
+	# Candidate-Three-preferred ballots
+	for i in xrange(3):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateThree, 1)
+		ballots.add(ballot)
+		
+	# Candidate-Four-preferred ballots
+	for i in xrange(3):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateFour, 1)
+		ballots.add(ballot)
+
+	print("Running election...")
+	election = Election()
+	election.name = description
+	election.seats = 2
+	election.ballots = ballots
+
+	winners = election.compute_winners(verbose=True)
+	print(winners)
+
 def runTest2000ElectionApproximation():
 	description = "2000 Election Approximation Test"
 	print(description)
@@ -322,4 +412,4 @@ def runTestWikipediaFoodSelection():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-runTestWikipediaFoodSelection()
+runTestWithRandomTiebreakToDetermineWinner()

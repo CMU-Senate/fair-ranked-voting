@@ -369,7 +369,7 @@ class Election:
     is used to compute and return the winners of the election.
     """
     
-    def __init__(self, name="", seats=1):
+    def __init__(self, name="", seats=1, is_final_tiebreak_manual=False):
         # The name of the election, for bookkeeping and verbose printing
         self.name = name
         
@@ -378,6 +378,11 @@ class Election:
         
         # The set of all ballots cast in the election
         self.ballots = list()
+        
+        # If candidates are tied for fewest votes for all current and previous rounds:
+        # If manual tiebreak, the user will be prompted to eliminate a candidate
+        # If not manual tiebreak, a random candidate will be eliminated
+        self.is_final_tiebreak_manual = is_final_tiebreak_manual
     
     def droop_quota(self, num_ballots, seats):
         """
@@ -446,8 +451,11 @@ class Election:
                 
             # If no winners are declared for the round, eliminate the candidate with the fewest votes
             else:
-                # Find the candidate(s) with the fewest votes in the current round            
-                candidates_to_eliminate = counter.candidates_with_fewest_votes()
+                # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
+                active_candidates = set(counter.active_candidates())
+                if Ballot.NO_CONFIDENCE in active_candidates:
+                    active_candidates.remove(Ballot.NO_CONFIDENCE)
+                candidates_to_eliminate = counter.candidates_with_fewest_votes(limit_to_candidates=active_candidates)
                 assert len(candidates_to_eliminate) >= 1
                 
                 # If multiple candidates have the fewest votes in a round, choose the candidate with the fewest votes in the previous round
@@ -463,17 +471,24 @@ class Election:
                     counter.declare_loser(losing_candidate)
                 
                 # If multiple candidates are still tied for fewest votes,
-                # a random candidate would need to be eliminated.
+                # a final tiebreak is required.
                 else:
-                    remaining_candidates = counter.active_candidates()
-                    is_deciding_winner = len(remaining_candidates) - 1 + len(counter.winning_candidates) <= self.seats
-                    
-                    if is_deciding_winner:
-                        print("\n*** Manual Tiebreak Required ***")
-                        print("The following are tied for fewest votes in the current round and all previous rounds. Randomly eliminating a candidate would automatically declare the other(s) winner, so it is left up to the election committee to break the tie.")
-                        print(candidates_to_eliminate)
-                        break
+                    # If the election has manual final tiebreaks,
+                    # prompt the user to eliminate a candidate
+                    if self.is_final_tiebreak_manual:
+                        print("\nManual Tiebreak Required:")
+                        print("The below candidates are tied for fewest votes for all current and previous rounds:")
+                        for candidate_to_eliminate in candidates_to_eliminate:
+                            print(candidate_to_eliminate)
+                        while True:
+                            manually_eliminated_candidate = raw_input("\nSelect a candidate to eliminate: ")
+                            if manually_eliminated_candidate in candidates_to_eliminate:
+                                counter.declare_loser(manually_eliminated_candidate)
+                                break
+                            else:
+                                print("The candidate to eliminate must be in the above list.")
                     else:
+                        # Eliminate a random candidate
                         losing_candidate = random.sample(candidates_to_eliminate, 1).pop()
                         counter.declare_loser(losing_candidate)
         

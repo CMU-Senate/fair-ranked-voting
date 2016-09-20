@@ -138,32 +138,41 @@ def runTestWithTwoCandidatesTwoSeats():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-def runTestWithThreeCandidatesTwoSeatsTiebreak():
-	description = "Three Candidates Two Seats Tiebreak"
+def runTestWithThreeCandidatesOneSeat():
+	description = "Three Candidates Two Seats"
 	print(description)
 	print("Generating ballots...")
 	candidateOne = "Candidate One"
 	candidateTwo = "Candidate Two"
 	candidateThree = "Candidate Three"
-	num_ballots = 100
 	ballots = set()
 
-	for i in xrange(num_ballots):
+	# Candidate-One-preferred ballots
+	for i in xrange(2):
 		ballot = Ballot()
-		if i < .32 * num_ballots:
-			ballot.set_candidate_with_rank(candidateOne, 1)
-			ballot.set_candidate_with_rank(candidateTwo, 2)
-		elif i < .64 * num_ballots:
-			ballot.set_candidate_with_rank(candidateTwo, 1)
-			ballot.set_candidate_with_rank(candidateOne, 2)
-		else:
-			ballot.set_candidate_with_rank(candidateThree, 1)
+		ballot.set_candidate_with_rank(candidateOne, 1)
+		ballot.set_candidate_with_rank(candidateThree, 2)
+		ballots.add(ballot)
+		
+	# Candidate-Two-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateTwo, 1)
+		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 2)
+		ballots.add(ballot)
+	
+	# Candidate-Three-preferred ballots
+	for i in xrange(1):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateThree, 1)
+		ballot.set_candidate_with_rank(candidateOne, 2)
+		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 3)
 		ballots.add(ballot)
 
 	print("Running election...")
 	election = Election()
 	election.name = description
-	election.seats = 2
+	election.seats = 1
 	election.ballots = ballots
 
 	winners = election.compute_winners(verbose=True)
@@ -211,6 +220,7 @@ def runTestWithRandomTiebreakBetweenTwoLosers():
 	election.name = description
 	election.seats = 2
 	election.ballots = ballots
+	election.is_final_tiebreak_manual = True
 
 	winners = election.compute_winners(verbose=True)
 	print(winners)
@@ -255,6 +265,7 @@ def runTestWithRandomTiebreakToDetermineWinner():
 	election.name = description
 	election.seats = 2
 	election.ballots = ballots
+	election.is_final_tiebreak_manual = True
 
 	winners = election.compute_winners(verbose=True)
 	print(winners)
@@ -412,4 +423,4 @@ def runTestWikipediaFoodSelection():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-runTestWithRandomTiebreakToDetermineWinner()
+runTestWikipediaFoodSelection()

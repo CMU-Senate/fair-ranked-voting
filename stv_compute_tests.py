@@ -205,5 +205,121 @@ def runTest2000ElectionApproximation():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-runTest2000ElectionApproximation()
+def runTestCGPGreyAnimalKingdom():
+	description = "CGP Grey's Politics in the Animal Kingdom Test"
+	print(description)
+	print("Generating ballots...")
+	tarsier = "Tarsier"
+	gorilla = "Gorilla"
+	monkey = "Monkey"
+	tiger = "Tiger"
+	lynx = "Lynx"
+	num_ballots = 10000
+	ballots = set()
+	
+	tarsier_percentage = .05
+	gorilla_percentage = .28
+	monkey_percentage = .33
+	tiger_percentage = .21
+	lynx_percentage = .13
+	
+	tarsier_max_range = tarsier_percentage
+	gorilla_max_range = tarsier_max_range + gorilla_percentage
+	monkey_max_range = gorilla_max_range + monkey_percentage
+	tiger_max_range = monkey_max_range + tiger_percentage
+	
+	for i in xrange(num_ballots):
+		ballot = Ballot()
+		if i < tarsier_max_range * num_ballots:
+			# tarsier-preferred ballots
+			ballot.set_candidate_with_rank(tarsier, 1)
+			ballot.set_candidate_with_rank(gorilla, 2)
+		elif i < gorilla_max_range * num_ballots:
+			# gorilla-preferred ballots
+			ballot.set_candidate_with_rank(gorilla, 1)
+			ballot.set_candidate_with_rank(tarsier, 2)
+			ballot.set_candidate_with_rank(monkey, 3)
+		elif i < monkey_max_range * num_ballots:
+			# monkey-preferred ballots
+			ballot.set_candidate_with_rank(monkey, 1)
+		elif i < tiger_max_range * num_ballots:
+			# tiger-preferred ballots
+			ballot.set_candidate_with_rank(tiger, 1)
+		else:
+			# lynx-preferred ballots
+			ballot.set_candidate_with_rank(lynx, 1)
+			ballot.set_candidate_with_rank(tiger, 2)
+			ballot.set_candidate_with_rank(tarsier, 3)
+			ballot.set_candidate_with_rank(monkey, 4)
+			ballot.set_candidate_with_rank(gorilla, 5)
+		ballots.add(ballot)
 
+	print("Running election...")
+	election = Election()
+	election.name = description
+	election.seats = 3
+	election.ballots = ballots
+
+	winners = election.compute_winners(verbose=True)
+	print(winners)
+
+def runTestWikipediaFoodSelection():
+	description = "Wikipedia's Food Selection Example Test"
+	print(description)
+	print("Generating ballots...")
+	oranges = "Oranges"
+	pears = "Pears"
+	chocolate = "Chocolate"
+	strawberries = "Strawberries"
+	sweets = "Sweets"
+	ballots = set()
+	
+	# Oranges-preferred ballots
+	for i in xrange(4):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(oranges, 1)
+		ballots.add(ballot)
+	
+	# Pears-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(pears, 1)
+		ballot.set_candidate_with_rank(oranges, 2)
+		ballots.add(ballot)
+	
+	# Chocolate-preferred ballots (type 1)
+	for i in xrange(8):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(chocolate, 1)
+		ballot.set_candidate_with_rank(strawberries, 2)
+		ballots.add(ballot)
+	
+	# Chocolate-preferred ballots (type 2)
+	for i in xrange(4):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(chocolate, 1)
+		ballot.set_candidate_with_rank(sweets, 2)
+		ballots.add(ballot)
+	
+	# Strawberries-preferred ballots
+	for i in xrange(1):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(strawberries, 1)
+		ballots.add(ballot)
+	
+	# Sweets-preferred ballots
+	for i in xrange(1):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(sweets, 1)
+		ballots.add(ballot)
+
+	print("Running election...")
+	election = Election()
+	election.name = description
+	election.seats = 3
+	election.ballots = ballots
+
+	winners = election.compute_winners(verbose=True)
+	print(winners)
+
+runTestWikipediaFoodSelection()

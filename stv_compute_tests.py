@@ -39,18 +39,38 @@ def runTestWithOneCandidateOneSeatWinner():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-def runTestWithOneCandidateOneSeatNoConfidence():
-	description = "One Candidate One Seat No Confidence Test"
+def runTestWithThreeCandidatesOneSeatNoConfidence():
+	description = "Three Candidates One Seat No Confidence Test"
 	print(description)
 	print("Generating ballots...")
-	candidate = "Candidate"
-	num_ballots = 10
+	candidateOne = "Devin Gund"
+	candidateTwo = "Hillary Clinton"
+	candidateThree = "Donald Trump"
 	ballots = set()
 
-	for i in xrange(num_ballots):
+	# Candidate-One-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateOne, 1)
+		ballots.add(ballot)
+		
+	# Candidate-Two-preferred ballots
+	for i in xrange(1):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateTwo, 1)
+		ballot.set_candidate_with_rank(candidateOne, 2)
+		ballots.add(ballot)
+		
+	# Candidate-Three-preferred ballots
+	for i in xrange(2):
+		ballot = Ballot()
+		ballot.set_candidate_with_rank(candidateThree, 1)
+		ballots.add(ballot)
+		
+	# No-Confidence-preferred ballots
+	for i in xrange(2):
 		ballot = Ballot()
 		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 1)
-		ballot.set_candidate_with_rank(candidate, 2)
 		ballots.add(ballot)
 
 	print("Running election...")
@@ -138,7 +158,7 @@ def runTestWithTwoCandidatesTwoSeats():
 	winners = election.compute_winners(verbose=True)
 	print(winners)
 
-def runTestWithThreeCandidatesOneSeat():
+def runTestWithThreeCandidatesTwoSeats():
 	description = "Three Candidates Two Seats"
 	print(description)
 	print("Generating ballots...")
@@ -172,7 +192,7 @@ def runTestWithThreeCandidatesOneSeat():
 	print("Running election...")
 	election = Election()
 	election.name = description
-	election.seats = 1
+	election.seats = 2
 	election.ballots = ballots
 
 	winners = election.compute_winners(verbose=True)

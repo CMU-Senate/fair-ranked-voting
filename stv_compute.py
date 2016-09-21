@@ -426,22 +426,41 @@ class Election:
             if (verbose):
                 print("\n*** Voting Round %d ***" % counter.voting_round)
             
+            remaining_candidates = counter.active_candidates()
+            remaining_seats = self.seats - len(counter.winning_candidates)
+            
             # Check for a winner (a candidate whose votes meet the quota)
             winners_for_round = counter.candidates_reaching_quota(quota)
-            remaining_candidates = counter.active_candidates()
             
             # Declare any winners, redistributing their surplus votes 
             if len(winners_for_round) > 0:
                 for winning_candidate in winners_for_round:
                     counter.declare_winner(winning_candidate, quota)
+                # If No Confidence wins, end the election
                 if Ballot.NO_CONFIDENCE in counter.winning_candidates:
                     if(verbose):
                         print("%s has been declared a winner, so no further rounds will be conducted." % (Ballot.NO_CONFIDENCE))
                     break
                     
-            # If the remaining seats must be filled by the remaining candidates, fill them.
-            elif len(remaining_candidates) + len(counter.winning_candidates) <= self.seats:
-                for candidate in remaining_candidates:
+            # If the remaining seats must be filled by the remaining candidates, fill them
+            # No Confidence cannot be eliminated, but if it has the fewest
+            # votes, fill the remaining seats with the rest of the candidates
+            elif (len(remaining_candidates) <= remaining_seats or
+                 (len(remaining_candidates) <= remaining_seats + 1 and
+                  Ballot.NO_CONFIDENCE in remaining_candidates and
+                  Ballot.NO_CONFIDENCE in counter.candidates_with_fewest_votes())):
+                
+                remaining_candidates_to_fill = remaining_candidates    
+                
+                # In the case where No Confidence has the fewest votes and the
+                # other candidates fill the remaining seats, discard No Confidence
+                if len(remaining_candidates_to_fill) == remaining_seats + 1:
+                    remaining_candidates_to_fill.remove(Ballot.NO_CONFIDENCE)
+
+                # Fill the remaining seats with the remaining candidates,
+                # even though they will not meet the quota
+                assert len(remaining_candidates_to_fill) <= remaining_seats
+                for candidate in remaining_candidates_to_fill:
                     counter.declare_winner(candidate, quota)
                     if (verbose):
                         print("%s is declared a winner in order to fill a remaining seat." % (candidate))

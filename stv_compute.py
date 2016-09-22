@@ -357,7 +357,7 @@ class Election_Counter:
         candidate_votes = self._votes_for_candidate_per_round[self.voting_round].pop(candidate)
         
         self.verbose_print((
-            "%s has the fewest votes and will be eliminated%s, with %.2f votes in this round." +
+            "%s has the fewest votes and will be eliminated%s, with %.2f votes in this round. " +
             "Their votes will be redistributed amongst their ballots."
         ) % (candidate, ' randomly' if random else '', candidate_votes))
         
@@ -407,7 +407,8 @@ class Election:
         Parameters:
             - verbose (optional): if True, prints details of election progress
                 defaults to False
-        Returns: set containing strings representing the winning candidates
+        Returns: a tuple of the set containing strings representing the 
+                    winning candidates and the election's Election_Counter object
         """
         # Initialize the election counter
         counter = Election_Counter(verbose=verbose)
@@ -523,4 +524,4 @@ class Election:
             print("***** End Election *****\n")
         
         assert len(counter.winning_candidates) <= self.seats
-        return counter.winning_candidates
+        return (counter.winning_candidates, counter)

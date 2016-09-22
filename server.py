@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 from flask import Flask, send_from_directory, request
 
 import json
-from io import StringIO
+from cStringIO import StringIO
 import sys
 
 from stv_compute import Ballot
@@ -24,7 +24,7 @@ def stv():
         ballot = Ballot()
         for rank, candidate in raw_ballot.items():
             if candidate and rank.isdigit():
-                 ballot.set_candidate_with_rank(candidate, int(rank))
+                 ballot.set_candidate_with_rank(candidate.strip(), int(rank))
         ballots.add(ballot)
 
     election = Election()
@@ -34,11 +34,18 @@ def stv():
     old_stdout = sys.stdout
     sys.stdout = output = StringIO()
 
-    _winners = election.compute_winners(verbose=True)
+    _winners, counter = election.compute_winners(verbose=True)
 
     sys.stdout = old_stdout
 
-    return output.getvalue()
+    output = {
+        'winners': list(counter.winning_candidates),
+        'losers': list(counter.losing_candidates),
+        'votes': counter._votes_for_candidate_per_round,
+        'output': output.getvalue()
+    }
+
+    return json.dumps(output)
 
 @app.route('/')
 def index():

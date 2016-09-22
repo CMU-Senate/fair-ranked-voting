@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
     <meta name="author" content="Sushain K. Cherivirala (www.skc.name)">
     <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
@@ -18,13 +18,24 @@
     <link rel="stylesheet" type="text/css" href="/static/datatables/datatables.min.css"/>
     <script type="text/javascript" src="/static/datatables/datatables.min.js"></script>
 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/bootstrap-slider.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/css/bootstrap-slider.min.css" />
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
     <!--[if lt IE 9]>
       <script type="text/javascript" src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script type="text/javascript" src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
     <style type="text/css">
-
+      #electionRound .slider-selection {
+        background: lightgray;
+      }
+      #electionRound .slider-handle {
+        background-color: #2780e3;
+        background-image: none;
+      }
     </style>
   </head>
   <body>
@@ -67,10 +78,10 @@
           </div>
           <div class="form-group">
             <label for="candidates" style="margin-right: .5em;">Candidates</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              id="candidates" 
+            <input
+              type="text"
+              class="form-control"
+              id="candidates"
               placeholder="Joe, Bob, Allen">
             <p class="form-control-static">(comma seperated, NC is included by default)</p>
           </div>
@@ -94,9 +105,12 @@
         Compute election results
       </button>
 
-      <div class="well well-sm">
-        <pre id="electionOutput" style="white-space: pre-wrap;">
-        </pre>
+      <div class="well well-sm" id="electionResults" style="display: none;">
+        <div style="margin-bottom: 1em; padding-right: 1.5em; padding-left: 1.5em;">
+          <input id="electionRound" data-slider-id="electionRound" type="text" data-slider-min="1" data-slider-step="1" style="width: 100%;">
+        </div>
+        <div id="electionVoteChart" style="margin-bottom: 1em;"></div>
+        <pre id="electionOutput" style="white-space: pre-wrap;"></pre>
       </div>
     </div>
 
@@ -128,6 +142,7 @@
     <script type="text/javascript">
       var elections = {};
       var currentElection;
+      var electionResults;
       var dataTable;
 
       if (localStorage.elections) {
@@ -184,8 +199,61 @@
       });
 
       function computeElectionResults() {
-        $.get('/stv', {data: JSON.stringify(elections[currentElection])}, function (response) {
-          $('pre#electionOutput').text(response);
+        $.get('/stv', {data: JSON.stringify(elections[currentElection])}, function (data) {
+          var data = JSON.parse(data);
+          electionResults = data;
+          $('div#electionResults').fadeIn('fast');
+          $('input#electionRound').slider({
+            tooltip: 'hide',
+            ticks: Object.keys(data.votes).map(function (x) { return parseInt(x) + 1}),
+            ticks_labels: Object.keys(data.votes).map(function (x) { return 'Round ' + (parseInt(x) + 1)}),
+          }).change('slide', updateVotesChart);
+          $('pre#electionOutput').text(data.output);
+          updateVotesChart();
+        });
+      }
+
+      function updateVotesChart() {
+        var round = parseInt($('input#electionRound').val());
+        var votes = electionResults.votes[round - 1];
+        var candidates = elections[currentElection].candidates.slice(0);
+        candidates.push('No Confidence');
+
+        $('div#electionVoteChart').highcharts({
+          chart: {
+            type: 'bar',
+          },
+          title: {
+            text: 'Round ' + round + ': Vote Distribution',
+          },
+          xAxis: {
+            categories: candidates,
+            title: {
+                text: 'Candidate',
+            },
+          },
+          yAxis: {
+            min: 0,
+            title: {
+                text: 'First Preference Votes'
+            },
+          },
+          legend: {
+            enabled: false,
+          },
+          series: [{
+            name: 'Votes',
+            data:
+              Object.keys(votes)
+                .map(function (c) { return {x: candidates.indexOf(c), y: votes[c]}; })
+                .sort(function (a, b) { return a[0] - b[0]}),
+            dataLabels: {
+              enabled: true,
+            },
+          }],
+          credits: {
+            enabled: false,
+          },
         });
       }
 
@@ -197,13 +265,13 @@
           }
 
           var candidateOptions = elections[currentElection].candidates.map(
-            function (c) { 
-              return {label: c, value: c}; 
+            function (c) {
+              return {label: c, value: c};
             }
           );
           candidateOptions.push({
             label: 'No Confidence',
-            value: 'NC'
+            value: 'No Confidence'
           });
           candidateOptions.unshift({
             label: '--',
@@ -222,7 +290,7 @@
           for (var i = 1; i <= elections[currentElection].candidates.length; i++) {
             $('table#ballots thead tr').append($('<td>').text('Preference ' + i));
             fields.push({
-              label: 'Preference ' + i, 
+              label: 'Preference ' + i,
               name: i.toString(),
               type: 'select',
               options: candidateOptions,
@@ -234,7 +302,7 @@
             table: '#ballots',
             ajax: function (method, url, d, successCallback, errorCallback) {
               var output = {data: []};
-   
+
               if (d.action === 'create') {
                 $.each(d.data, function (key, value) {
                   var id = value.id;
@@ -252,9 +320,9 @@
               else if (d.action === 'remove') {
                 $.each(d.data, function (id) {
                     delete elections[currentElection].ballots[id];
-                }); 
+                });
               }
-   
+
               store();
               successCallback(output);
             },

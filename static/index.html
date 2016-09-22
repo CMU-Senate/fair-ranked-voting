@@ -36,6 +36,11 @@
         background-color: #2780e3;
         background-image: none;
       }
+      #ballots_paginate {
+        display: inline;
+        float: right;
+        padding-top: .5em;
+      }
     </style>
   </head>
   <body>
@@ -110,7 +115,7 @@
           <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
-          <strong>Stop!</strong> This election was determined by random tiebreaking. Manual intervention to may be required to correctly decide results.
+          <strong>Stop!</strong> This election was determined by random tiebreaking. Manual intervention may be required to correctly decide results.
         </div>
         <div style="margin-bottom: 1em; padding-right: 1.5em; padding-left: 1.5em;">
           <input id="electionRound" data-slider-id="electionRound" type="text" data-slider-min="1" data-slider-step="1" style="width: 100%;">
@@ -207,6 +212,9 @@
       function computeElectionResults() {
         $.get('/stv', {data: JSON.stringify(elections[currentElection])}, function (data) {
           var data = JSON.parse(data);
+          if (electionResults) {
+            $('input#electionRound').slider('destroy');
+          }
           electionResults = data;
           $('div#electionResults').fadeIn('fast');
           $('input#electionRound').slider({
@@ -236,14 +244,24 @@
           xAxis: {
             categories: candidates,
             title: {
-                text: 'Candidate',
+              text: 'Candidate',
             },
           },
           yAxis: {
             min: 0,
+            minRange: electionResults.quota + 1,
             title: {
-                text: 'First Preference Votes'
+              text: 'First Preference Votes'
             },
+            plotLines: [{
+              label: {
+                text: 'Quota',
+              },
+              color: '#3fb618',
+              width: 3,
+              value: electionResults.quota,
+              zIndex: 5,
+            }]
           },
           legend: {
             enabled: false,
@@ -253,7 +271,7 @@
             data:
               Object.keys(votes)
                 .map(function (c) { return {x: candidates.indexOf(c), y: votes[c]}; })
-                .sort(function (a, b) { return a[0] - b[0]}),
+                .sort(function (a, b) { return a.x - b.x}),
             dataLabels: {
               enabled: true,
             },
@@ -383,7 +401,7 @@
           var ballots = elections[currentElection].ballots;
 
           dataTable = $('table#ballots').DataTable({
-            dom: '<"aboveTable"Bfr>tip',
+            dom: '<"aboveTable"Bfr>t<p<il>>',
             columns: columns,
             data: Object.keys(ballots).map(function (k) { return ballots[k]; }),
             select: true,
@@ -399,9 +417,9 @@
                       'copy',
                       'csv',
                       'pdf',
-                      'print'
-                  ]
-                }
+                      'print',
+                  ],
+                },
             ],
             initComplete: function () {
               var searchInput = $('.aboveTable input');

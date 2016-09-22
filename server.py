@@ -42,6 +42,7 @@ def stv():
         'winners': list(counter.winning_candidates),
         'losers': list(counter.losing_candidates),
         'votes': counter._votes_for_candidate_per_round,
+        'quota': election.droop_quota(len(ballots), seats),
         'output': output.getvalue()
     }
 

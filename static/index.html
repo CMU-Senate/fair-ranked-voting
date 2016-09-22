@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <meta name="author" content="Sushain K. Cherivirala (www.skc.name)">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
+
+    <title>CMU Senate: Vacancy Elections</title>
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+    <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cosmo/bootstrap.min.css">
+
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css" href="/static/datatables/datatables.min.css"/>
+    <script type="text/javascript" src="/static/datatables/datatables.min.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/bootstrap-slider.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/css/bootstrap-slider.min.css" />
+
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
+    <!--[if lt IE 9]>
+      <script type="text/javascript" src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script type="text/javascript" src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style type="text/css">
+      #electionRound .slider-selection {
+        background: lightgray;
+      }
+      #electionRound .slider-handle {
+        background-color: #2780e3;
+        background-image: none;
+      }
+      #ballots_paginate {
+        display: inline;
+        float: right;
+        padding-top: .5em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div>
+        <h1 style="display: inline-block; margin-bottom: 1em">Senate Vacancy Elections</h1>
+        <a href="https://cmusenate.org" target="_blank">
+          <img src="https://cmusenate.org/wp-content/uploads/2016/08/finallogo-color.png" style="float: right; height: 4.75em; padding-top: 12px;">
+        </a>
+      </div>
+
+      <div class="alert alert-warning" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <strong>Warning!</strong> This system is a work in progress.
+      </div>
+
+      <div class="well well-sm">
+        <div class="input-group" style="margin-bottom: 1.5em;">
+          <div class="input-group-btn" style="padding-right: 15px;">
+            <button class="btn btn-danger" id="deleteElection" disabled>
+              <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;
+              Delete this election
+            </button>
+          </div>
+          <select id="elections" class="form-control"></select>
+          <div class="input-group-btn" style="padding-left: 15px;">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#addElectionModal">
+              <i class="fa fa-plus" aria-hidden="true"></i>&nbsp;
+              Add an election
+            </button>
+          </div>
+        </div>
+
+        <form class="form-inline" style="opacity: 0;" id="electionSettings">
+          <div class="form-group" style="margin-right: 1em;">
+            <label for="seats" style="margin-right: .5em;">Seats</label>
+            <input type="number" class="form-control" id="seats" min="0">
+          </div>
+          <div class="form-group">
+            <label for="candidates" style="margin-right: .5em;">Candidates</label>
+            <input
+              type="text"
+              class="form-control"
+              id="candidates"
+              placeholder="Joe, Bob, Allen">
+            <p class="form-control-static">(comma seperated, NC is included by default)</p>
+          </div>
+          <button class="btn btn-primary" type="submit" style="float: right;">
+            <i class="fa fa-save" aria-hidden="true"></i>&nbsp;
+            Save election settings
+          </button>
+        </form>
+      </div>
+
+      <div class="well well-sm">
+        <table class="table table-responsive table-condensed table-striped table-bordered table-hover" id="ballots">
+          <thead>
+            <tr></tr>
+          </thead>
+        </table>
+      </div>
+
+      <button class="btn btn-primary" id="computeElection" style="width: 100%; margin-bottom: .75em;">
+        <i class="fa fa-calculator" aria-hidden="true"></i>&nbsp;
+        Compute election results
+      </button>
+
+      <div class="well well-sm" id="electionResults" style="display: none;">
+        <div class="alert alert-danger" role="alert" id="electionRandomAlert" style="display: none;">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <strong>Stop!</strong> This election was determined by random tiebreaking. Manual intervention may be required to correctly decide results.
+        </div>
+        <div style="margin-bottom: 1em; padding-right: 1.5em; padding-left: 1.5em;">
+          <input id="electionRound" data-slider-id="electionRound" type="text" data-slider-min="1" data-slider-step="1" style="width: 100%;">
+        </div>
+        <div id="electionVoteChart" style="margin-bottom: 1em;"></div>
+        <pre id="electionOutput" style="white-space: pre-wrap;"></pre>
+      </div>
+    </div>
+
+    <div class="modal fade" id="addElectionModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Add Election</h4>
+          </div>
+          <div class="modal-body">
+            <form id="addElection">
+              <input type="text" class="form-control" id="electionName" placeholder="Election Name" required>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" form="addElection">
+              <i class="fa fa-check" aria-hidden="true"></i>&nbsp;
+              Create election
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var elections = {};
+      var currentElection;
+      var electionResults;
+      var dataTable;
+
+      if (localStorage.elections) {
+        elections = JSON.parse(localStorage.elections);
+        currentElection = Object.keys(elections)[0];
+      }
+
+      updateElectionSettings();
+
+      $(document).ready(function () {
+        $('form#addElection').submit(function () {
+          currentElection = $('input#electionName').val();
+          elections[currentElection] = {
+            'seats': 1,
+            'candidates': [],
+            'ballots': {},
+          };
+          store();
+          updateElectionSettings();
+          $('div#addElectionModal').modal('hide');
+          return false;
+        })
+
+        $('button#deleteElection').click(function () {
+          var electionName = $('select#elections').val();
+          $('option:selected', $('select#elections')).remove();
+          delete elections[electionName];
+          currentElection = Object.keys(elections)[0];
+          store();
+          updateElectionSettings();
+        });
+
+        $('select#elections').change(function () {
+          currentElection = $('select#elections').val();
+          updateElectionSettings();
+        });
+
+        $('form#electionSettings').submit(function () {
+          elections[currentElection].seats = parseInt($('input#seats').val());
+          elections[currentElection].candidates = $('input#candidates').val().match(/(?:([A-z]+)\s*,)*([A-z]+)\s*/g);
+          Object.keys(elections[currentElection].ballots).forEach(function (k) {
+            for (var i = 1; i <= elections[currentElection].candidates.length; i++) {
+              if(!elections[currentElection].ballots[k][i.toString()]) {
+                elections[currentElection].ballots[k][i.toString()] = '';
+              }
+            }
+          });
+          updateElectionSettings();
+          store();
+          return false;
+        });
+
+        $('button#computeElection').click(computeElectionResults);
+      });
+
+      function computeElectionResults() {
+        $.get('/stv', {data: JSON.stringify(elections[currentElection])}, function (data) {
+          var data = JSON.parse(data);
+          if (electionResults) {
+            $('input#electionRound').slider('destroy');
+          }
+          electionResults = data;
+          $('div#electionResults').fadeIn('fast');
+          $('input#electionRound').slider({
+            tooltip: 'hide',
+            ticks: Object.keys(data.votes).map(function (x) { return parseInt(x) + 1}),
+            ticks_labels: Object.keys(data.votes).map(function (x) { return 'Round ' + (parseInt(x) + 1)}),
+          }).change('slide', updateVotesChart);
+          $('pre#electionOutput').text(data.output);
+          $('div#electionRandomAlert').css('display', data.output.indexOf('random') == -1 ? 'none' : 'block');
+          updateVotesChart();
+        });
+      }
+
+      function updateVotesChart() {
+        var round = parseInt($('input#electionRound').val());
+        var votes = electionResults.votes[round - 1];
+        var candidates = elections[currentElection].candidates.slice(0);
+        candidates.push('No Confidence');
+
+        $('div#electionVoteChart').highcharts({
+          chart: {
+            type: 'bar',
+          },
+          title: {
+            text: 'Round ' + round + ': Vote Distribution',
+          },
+          xAxis: {
+            categories: candidates,
+            title: {
+              text: 'Candidate',
+            },
+          },
+          yAxis: {
+            min: 0,
+            minRange: electionResults.quota + 1,
+            title: {
+              text: 'First Preference Votes'
+            },
+            plotLines: [{
+              label: {
+                text: 'Quota',
+              },
+              color: '#3fb618',
+              width: 3,
+              value: electionResults.quota,
+              zIndex: 5,
+            }]
+          },
+          legend: {
+            enabled: false,
+          },
+          series: [{
+            name: 'Votes',
+            data:
+              Object.keys(votes)
+                .map(function (c) { return {x: candidates.indexOf(c), y: votes[c]}; })
+                .sort(function (a, b) { return a.x - b.x}),
+            dataLabels: {
+              enabled: true,
+            },
+          }],
+          credits: {
+            enabled: false,
+          },
+        });
+      }
+
+      function updateBallotTable() {
+        if (elections[currentElection]) {
+          if (dataTable) {
+            dataTable.destroy();
+            $('table#ballots tbody').remove();
+          }
+
+          var candidateOptions = elections[currentElection].candidates.map(
+            function (c) {
+              return {label: c, value: c};
+            }
+          );
+          candidateOptions.push({
+            label: 'No Confidence',
+            value: 'No Confidence'
+          });
+          candidateOptions.unshift({
+            label: '--',
+            value: '',
+          });
+
+          var fields = [
+            {label: 'Ballot Number', name: 'id'},
+          ];
+
+          var columns = [
+            {data: 'id'},
+          ];
+
+          $('table#ballots thead tr').empty().append($('<td>Ballot Number</td>'));
+          for (var i = 1; i <= elections[currentElection].candidates.length; i++) {
+            $('table#ballots thead tr').append($('<td>').text('Preference ' + i));
+            fields.push({
+              label: 'Preference ' + i,
+              name: i.toString(),
+              type: 'select',
+              options: candidateOptions,
+            });
+            columns.push({data: i.toString()});
+          }
+
+          var ballotEditor = new $.fn.dataTable.Editor({
+            table: '#ballots',
+            ajax: function (method, url, d, successCallback, errorCallback) {
+              var output = {data: []};
+
+              if (d.action === 'create') {
+                $.each(d.data, function (key, value) {
+                  var id = value.id;
+                  elections[currentElection].ballots[id] = value;
+                  value.DT_RowId = id;
+                  output.data.push(value);
+                });
+              }
+              else if (d.action === 'edit') {
+                $.each(d.data, function (id, value) {
+                  $.extend(elections[currentElection].ballots[id], value);
+                  output.data.push(elections[currentElection].ballots[id]);
+                });
+              }
+              else if (d.action === 'remove') {
+                $.each(d.data, function (id) {
+                    delete elections[currentElection].ballots[id];
+                });
+              }
+
+              store();
+              successCallback(output);
+            },
+            fields: fields
+          });
+
+          ballotEditor.on('preSubmit', function (e, o, action) {
+            if (action !== 'remove') {
+              var ballotNumber = ballotEditor.field('id').val();
+              if (ballotNumber) {
+                if (!/^\+?(0|[1-9]\d*)$/.test(ballotNumber)) {
+                  ballotEditor.field('id').error('Invalid ballot number.');
+                }
+              }
+              else {
+                ballotEditor.field('id').error('Ballot number required.');
+              }
+
+              var seenPreferences = {};
+
+              for (var i = 1; i <= elections[currentElection].candidates.length; i++) {
+                var preference = ballotEditor.field(i.toString()).val();
+                if (preference) {
+                  if (seenPreferences[preference]) {
+                    ballotEditor.field(i.toString()).error('Ballot cannot list the same preference twice.');
+                  }
+                  if (i > 1 && !ballotEditor.field((i - 1).toString()).val()) {
+                    ballotEditor.field(i.toString()).error('Ballot cannot skip preferences.');
+                  }
+                  seenPreferences[preference] = true;
+                }
+              }
+
+              if (Object.keys(seenPreferences).length == 0) {
+                ballotEditor.field('1').error('Ballot cannot be empty.');
+              }
+            }
+
+            if (action === 'create') {
+              var ballotNumber = ballotEditor.field('id').val();
+              if (elections[currentElection].ballots[ballotNumber]) {
+                ballotEditor.field('id').error('Ballot number already entered.');
+              }
+            }
+
+            if (this.inError()) {
+              return false;
+            }
+          });
+
+          var ballots = elections[currentElection].ballots;
+
+          dataTable = $('table#ballots').DataTable({
+            dom: '<"aboveTable"Bfr>t<p<il>>',
+            columns: columns,
+            data: Object.keys(ballots).map(function (k) { return ballots[k]; }),
+            select: true,
+            responsive: true,
+            buttons: [
+                {extend: 'create', editor: ballotEditor},
+                {extend: 'edit',   editor: ballotEditor},
+                {extend: 'remove', editor: ballotEditor},
+                {
+                  extend: 'collection',
+                  text: 'Export',
+                  buttons: [
+                      'copy',
+                      'csv',
+                      'pdf',
+                      'print',
+                  ],
+                },
+            ],
+            initComplete: function () {
+              var searchInput = $('.aboveTable input');
+              var label = searchInput.parent();
+              searchInput.parent().parent().append(searchInput.detach());
+              label.remove();
+              searchInput.wrap($('<div class="input-group input-sm">'));
+              searchInput.css('margin-left', 0);
+              searchInput.attr('placeholder', 'Search');
+              searchInput.before(
+                $('<div class="input-group-addon input-sm"><i class="fa fa-search"></i></div>')
+              );
+              searchInput.parents('div.dataTables_filter').css({
+                'margin-bottom': '1em',
+                'display': 'inline',
+                'float': 'right',
+              });
+            }
+          });
+        }
+      }
+
+      function updateElectionSettings() {
+        $('select#elections').empty();
+        if (Object.keys(elections).length) {
+          Object.keys(elections).forEach(function (electionName) {
+            $('select#elections').append($('<option>').attr('value', electionName).text(electionName));
+          });
+          $('select#elections').val(currentElection);
+        }
+        else {
+          $('select#elections').append(
+            $("<option value='' selected hidden>Add a new election.</option>")
+          );
+        }
+
+        $('button#deleteElection').prop('disabled', Object.keys(elections).length == 0);
+        $('form#electionSettings').animate({'opacity': Object.keys(elections).length == 0 ? 0 : 1});
+
+        if (elections[currentElection]) {
+          $('input#seats').val(elections[currentElection].seats);
+          $('input#candidates').val(elections[currentElection].candidates.join(', '));
+        }
+
+        updateBallotTable();
+      }
+
+      function store() {
+        localStorage.elections = JSON.stringify(elections);
+      }
+    </script>
+  </body>
+</html>

@@ -343,19 +343,23 @@ class Election_Counter:
                 
             self.verbose_print("%s's surplus of %.2f votes will be redistributed amongst their ballots, each worth %.2f votes." % (candidate, surplus, surplus_multiplier))
         
-    def declare_loser(self, candidate):
+    def declare_loser(self, candidate, random=False):
         """
         Marks a candidate as losing, removing them from the election and
         redistributing all of their votes to their ballots' next preferences.
         
         Parameters:
             - candidate: the candidate to declare loser
+            - random (optional): whether the candidate was removed randomly
         """
         self.losing_candidates.add(candidate)
         candidate_ballots = self._ballots_for_candidate.pop(candidate)
         candidate_votes = self._votes_for_candidate_per_round[self.voting_round].pop(candidate)
         
-        self.verbose_print("%s has the fewest votes and will be eliminated, with %.2f votes in this round. Their votes will be redistributed amongst their ballots." % (candidate, candidate_votes))
+        self.verbose_print((
+            "%s has the fewest votes and will be eliminated%s, with %.2f votes in this round. " +
+            "Their votes will be redistributed amongst their ballots."
+        ) % (candidate, ' randomly' if random else '', candidate_votes))
         
         for candidate_ballot in candidate_ballots:
             updated_ballot = self.updated_ballot_for_eliminated_candidates(candidate_ballot)
@@ -403,7 +407,8 @@ class Election:
         Parameters:
             - verbose (optional): if True, prints details of election progress
                 defaults to False
-        Returns: set containing strings representing the winning candidates
+        Returns: a tuple of the set containing strings representing the 
+                    winning candidates and the election's Election_Counter object
         """
         # Initialize the election counter
         counter = Election_Counter(verbose=verbose)
@@ -509,7 +514,7 @@ class Election:
                     else:
                         # Eliminate a random candidate
                         losing_candidate = random.sample(candidates_to_eliminate, 1).pop()
-                        counter.declare_loser(losing_candidate)
+                        counter.declare_loser(losing_candidate, random=True)
         
         if verbose:
             print("\n*** Conclusion ***")
@@ -519,4 +524,4 @@ class Election:
             print("***** End Election *****\n")
         
         assert len(counter.winning_candidates) <= self.seats
-        return counter.winning_candidates
+        return (counter.winning_candidates, counter)

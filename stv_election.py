@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import csv
+
 from stv_compute import Ballot
 from stv_compute import Election
 
@@ -30,14 +32,14 @@ def prompt_election_seats():
 	election_seats = raw_input("How many seats should this election fill: ")
 	return int(election_seats)
 
-def print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command):
+def print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, file_command, help_command):
 	print("\nInstructions:")
 	print("- Input the candidates on a ballot in a comma-separated-list, ordered from most preferred to least preferred.")
 
 	print("- A vote of No Confidence can also be abbreviated as %s." % (no_confidence_short))
 	print("- Example: Awesome Candidate, Great Candidate, Average Candidate, No Confidence")
 
-	print("- Special Commands: '%s' to run election, '%s' to remove most recent ballot, '%s' to quit program, '%s' to view these instructions again" % (run_command, quit_command, undo_command, help_command))
+	print("- Special Commands: '%s' to run election, '%s' to remove most recent ballot, '%s' to quit program, '%s' to input ballots from CSV file', '%s' to view these instructions again" % (run_command, quit_command, undo_command, file_command, help_command))
 
 def prompt_ballot_command(ballot_count):
 	ballot_command = raw_input("\nBallot %d: " % (ballot_count + 1)).strip()
@@ -54,6 +56,7 @@ def main():
 	no_confidence_short = "NC"
 
 	run_command = "run"
+	file_command = "file"
 	quit_command = "quit"
 	undo_command = "undo"
 	help_command = "help"
@@ -68,7 +71,7 @@ def main():
 
 	election_seats = prompt_election_seats()
 
-	print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command)
+	print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, file_command, help_command)
 
 	while True:
 		ballot_or_command = prompt_ballot_command(len(election_ballots))
@@ -85,7 +88,7 @@ def main():
 			election.ballots = set(election_ballots)
 
 			# Run the election and compute winners
-			winners = election.compute_winners(verbose=True)
+			winners = election.compute_winners(verbose=True)[0]
 
 			# Print the winners and quit the program
 			print_conclusion(winners, election_seats)
@@ -108,7 +111,21 @@ def main():
 		# 'help' command
 		elif ballot_or_command.lower() == help_command:
 			# Print the instructions again
-			print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command)
+			print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, file_command, help_command)
+
+		# 'file' command
+		elif ballot_or_command.lower().startswith(file_command):
+			filename = ballot_or_command[len('find '):]
+			with open(filename) as file:
+				# For each ballot in the CSV
+				for ranked_candidates in csv.reader(file):
+					ballot = Ballot()
+					for rank, candidate in enumerate(ranked_candidates):
+						if candidate:
+							ballot.set_candidate_with_rank(candidate, rank + 1)
+
+					# Add the ballot to the list of ballots
+					election_ballots.append(ballot)
 
 		# Ballot input
 		else:

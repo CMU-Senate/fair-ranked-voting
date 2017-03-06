@@ -14,432 +14,353 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from election import *
+import unittest
 
-def runTestWithOneCandidateOneSeatWinner():
-	description = "One Candidate One Seat Winner Test"
-	print(description)
-	print("Generating ballots...")
-	candidate = "Candidate"
-	num_ballots = 10
-	ballots = set()
+candidate_for_id = {
+    'NC': NoConfidence(),
+    'A': Candidate('Devin Gund', 'dgund'),
+    'B': Candidate('George Washington', 'gwashington'),
+    'C': Candidate('John Adams', 'jadams'),
+    'D': Candidate('Thomas Jefferson', 'tjefferson'),
+    'E': Candidate('James Madison', 'jmadison'),
+    'F': Candidate('James Monroe', 'jmonroe'),
+    'G': Candidate('John Quincy Adams', 'jqadams'),
+    'H': Candidate('Andrew Jackson', 'ajackson'),
+    'I': Candidate('Martin Van Buren', 'mvburen'),
+    'J': Candidate('William Harrison', 'wharrison'),
+    'K': Candidate('John Tyler', 'jtyler'),
+    'L': Candidate('James Polk', 'jpolk'),
+    'M': Candidate('Zachary Taylor', 'ztaylor'),
+    'N': Candidate('Millard Fillmore', 'mfillmore'),
+    'O': Candidate('Franklin Pierce', 'fpierce'),
+    'P': Candidate('James Buchanan', 'jbuchanan'),
+    'Q': Candidate('Abraham Lincoln', 'alincoln'),
+    'R': Candidate('Andrew Johnson', 'ajohnson'),
+    'S': Candidate('Ulysses Grant', 'ugrant'),
+    'T': Candidate('Rutherford Hayes', 'rhayes'),
+    'U': Candidate('James Garfield', 'jgarfield'),
+    'V': Candidate('Chester Arthur', 'carthur'),
+    'W': Candidate('Grover Cleveland', 'gcleveland'),
+    'X': Candidate('Benjamin Harrison', 'bharrison'),
+    'Y': Candidate('William McKinley', 'wmckinley'),
+    'Z': Candidate('Theodore Roosevelt', 'troosevelt'),
+}
 
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidate, 1)
-		ballots.add(ballot)
+def candidates_for_ids(candidate_ids):
+    candidates = []
+    for candidate_id in candidate_ids:
+        candidates.append(candidate_for_id[candidate_id])
+    return candidates
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 1
-	election.ballots = ballots
+def ballots_for_candidates(candidates, count):
+    ballots = set()
+    for i in xrange(count):
+        ballot = Ballot()
+        ballot.set_candidates(candidates)
+        ballots.add(ballot)
+    return ballots
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+def ballots_for_ids(candidate_ids, count):
+    return ballots_for_candidates(candidates_for_ids(candidate_ids), count)
 
-def runTestWithThreeCandidatesOneSeatNoConfidence():
-	description = "Three Candidates One Seat No Confidence Test"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Devin Gund"
-	candidateTwo = "Hillary Clinton"
-	candidateThree = "Donald Trump"
-	ballots = set()
+class TestSmallElections(unittest.TestCase):
 
-	# Candidate-One-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateOne, 1)
-		ballots.add(ballot)
-		
-	# Candidate-Two-preferred ballots
-	for i in xrange(1):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateTwo, 1)
-		ballot.set_candidate_with_rank(candidateOne, 2)
-		ballots.add(ballot)
-		
-	# Candidate-Three-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateThree, 1)
-		ballots.add(ballot)
-		
-	# No-Confidence-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 1)
-		ballots.add(ballot)
+	def test_1_candidate_1_seat(self):
+		"""
+		Tests a 1 candidate election for 1 seat.
+		Expected winners: A
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 1
-	election.ballots = ballots
+		Round 0
+			Ballots:
+				10 * [A]
+			Votes:
+				A: 10
+			Threshold: (10) / (1+1) + 1 = 6
+			Result: A is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['A']))
+		seats = 1
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
+		ballots = set(
+			ballots_for_ids(['A'], 10))
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-def runTestWithTwoCandidatesOneSeat():
-	description = "Two Candidates One Seat Winner Test"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Candidate One"
-	candidateTwo = "Candidate Two"
-	num_ballots = 10
-	ballots = set()
+	def test_2_candidates_1_seat(self):
+		"""
+		Tests a 2 candidate election for 1 seat.
+		Expected winners: B
 
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		if i < .4 * num_ballots:
-			ballot.set_candidate_with_rank(candidateOne, 1)
-		else:
-			ballot.set_candidate_with_rank(candidateTwo, 1)
-		ballots.add(ballot)
+		Round 0
+			Ballots:
+				 5 * [A, B]
+				10 * [B, A]
+			Votes:
+				A: 5
+				B: 10
+			Threshold: (15) / (1+1) + 1 = 8.5
+			Result: B is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['B']))
+		seats = 1
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 1
-	election.ballots = ballots
+		ballots = set(
+			ballots_for_ids(['A', 'B'], 5) |
+			ballots_for_ids(['B', 'A'], 10))
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-def runTestWithOneCandidateTwoSeats():
-	description = "One Candidate Two Seats Winner Test"
-	print(description)
-	print("Generating ballots...")
-	candidate = "Candidate"
-	num_ballots = 10
-	ballots = set()
+	def test_3_candidates_1_seat(self):
+		"""
+		Tests a 3 candidate election for 1 seat.
+		Expected winners: C
 
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidate, 1)
-		ballots.add(ballot)
+		Round 0
+			Ballots:
+				 5 * [A, C]
+				10 * [B]
+				 7 * [C]
+			Votes:
+				A: 7
+				B: 10
+				C: 5
+			Threshold: (7+10+5) / (1+1) + 1 = 12
+			Result: A is eliminated
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 2
-	election.ballots = ballots
+		Round 1
+			Ballots:
+				10 * [B]
+				12 * [C]
+			Votes:
+				B: 10
+				C: 12
+			Threshold: (7+10+5) / (1+1) + 1 = 12
+			Result: C is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['C']))
+		seats = 1
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		ballots = set(
+			ballots_for_ids(['A', 'C'], 5) |
+			ballots_for_ids(['B'], 10) |
+			ballots_for_ids(['C'], 7))
 
-def runTestWithTwoCandidatesTwoSeats():
-	description = "Two Candidates Two Seats Winner Test"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Candidate One"
-	candidateTwo = "Candidate Two"
-	num_ballots = 10
-	ballots = set()
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		if i < .4 * num_ballots:
-			ballot.set_candidate_with_rank(candidateOne, 1)
-			ballot.set_candidate_with_rank(candidateTwo, 2)
-		else:
-			ballot.set_candidate_with_rank(candidateTwo, 1)
-			ballot.set_candidate_with_rank(candidateOne, 2)
-		ballots.add(ballot)
+	def test_1_candidate_2_seats(self):
+		"""
+		Tests a 1 candidate election for 2 seats.
+		Expected winners: A
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 2
-	election.ballots = ballots
+		Round 0
+			Ballots:
+				 10 * [A]
+			Votes:
+				A: 10
+			Threshold: (10) / (2+1) + 1 = 4.333
+			Result: A is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['A']))
+		seats = 2
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		ballots = set(
+			ballots_for_ids(['A'], 10))
 
-def runTestWithThreeCandidatesTwoSeats():
-	description = "Three Candidates Two Seats"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Candidate One"
-	candidateTwo = "Candidate Two"
-	candidateThree = "Candidate Three"
-	ballots = set()
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-	# Candidate-One-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateOne, 1)
-		ballot.set_candidate_with_rank(candidateThree, 2)
-		ballots.add(ballot)
-		
-	# Candidate-Two-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateTwo, 1)
-		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 2)
-		ballots.add(ballot)
-	
-	# Candidate-Three-preferred ballots
-	for i in xrange(1):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateThree, 1)
-		ballot.set_candidate_with_rank(candidateOne, 2)
-		ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 3)
-		ballots.add(ballot)
+	def test_4_candidates_2_seats(self):
+		"""
+		Tests a 4 candidate election for 2 seats.
+		Expected winners: A, B
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 2
-	election.ballots = ballots
+		Round 0
+			Ballots:
+				10 * [A, NC]
+				16 * [B, NC]
+				15 * [C, NC]
+				 7 * [D, A]
+			Votes:
+				A: 10
+				B: 16
+				C: 15
+				D: 7
+			Threshold: (10+16+15+7) / (2+1) + 1 = 17
+			Result: D is eliminated
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		Round 1
+			Ballots:
+				10 * [A, NC]
+				16 * [B, NC]
+				15 * [C, NC]
+				 7 * [A]
+			Votes:
+				A: 17
+				B: 16
+				C: 15
+			Threshold: (10+16+15+7) / (2+1) + 1 = 17
+			Result: A is elected
 
-def runTestWithRandomTiebreakBetweenTwoLosers():
-	description = "Random Tiebreak Between Losing Candidates Test"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Candidate One"
-	candidateTwo = "Candidate Two"
-	candidateThree = "Candidate Three"
-	candidateFour = "Candidate Four"
-	num_ballots = 15
-	ballots = set()
-	
-	# Candidate-One-preferred ballots
-	for i in xrange(6):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateOne, 1)
-		ballots.add(ballot)
-	
-	# Candidate-Two-preferred ballots
-	for i in xrange(5):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateTwo, 1)
-		ballots.add(ballot)
-	
-	# Candidate-Three-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateThree, 1)
-		ballot.set_candidate_with_rank(candidateFour, 2)
-		ballots.add(ballot)
-	
-	# Candidate-Four-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateFour, 1)
-		ballot.set_candidate_with_rank(candidateThree, 2)
-		ballots.add(ballot)
+		Round 2
+			Ballots:
+				16 * [B, NC]
+				15 * [C, NC]
+			Votes:
+				B: 16
+				C: 15
+			Threshold: (16+15) / (1+1) + 1 = 16.5
+			Result: C is eliminated
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 2
-	election.ballots = ballots
-	election.is_final_tiebreak_manual = True
+		Round 3
+			Ballots:
+				16 * [B, NC]
+				15 * [NC]
+			Votes:
+				B: 16
+				NC: 15
+			Threshold: (16+15) / (1+1) + 1 = 16.5
+			Result: NC is eliminated
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		Round 4
+			Ballots:
+				16 [B, NC]
+			Votes:
+				B: 16
+			Threshold: (16+15) / (1+1) + 1 = 16.5
+			Result: B is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['A', 'B']))
+		seats = 2
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-def runTestWithRandomTiebreakToDetermineWinner():
-	description = "Random Tiebreak Required To Determine Winner Test"
-	print(description)
-	print("Generating ballots...")
-	candidateOne = "Candidate One"
-	candidateTwo = "Candidate Two"
-	candidateThree = "Candidate Three"
-	candidateFour = "Candidate Four"
-	num_ballots = 15
-	ballots = set()
-		
-	# Candidate-One-preferred ballots
-	for i in xrange(6):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateOne, 1)
-		ballots.add(ballot)
-		
-	# Candidate-Two-preferred ballots
-	for i in xrange(3):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateTwo, 1)
-		ballots.add(ballot)
-		
-	# Candidate-Three-preferred ballots
-	for i in xrange(3):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateThree, 1)
-		ballots.add(ballot)
-		
-	# Candidate-Four-preferred ballots
-	for i in xrange(3):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(candidateFour, 1)
-		ballots.add(ballot)
+		ballots = set(
+			ballots_for_ids(['A', 'NC'], 10) |
+			ballots_for_ids(['B', 'NC'], 16) |
+			ballots_for_ids(['C', 'NC'], 15) |
+			ballots_for_ids(['D', 'A'], 7))
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 2
-	election.ballots = ballots
-	election.is_final_tiebreak_manual = True
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+class TestNoConfidence(unittest.TestCase):
 
-def runTest2000ElectionApproximation():
-	description = "2000 Election Approximation Test"
-	print(description)
-	print("Generating ballots...")
-	nader = "Ralph Nader"
-	bush = "George Bush"
-	gore = "Al Gore"
-	num_ballots = 100000
-	ballots = set()
+	def test_election_with_nc_elimination(self):
+		"""
+		Tests a 3 candidate election for 1 seat.
+		All of the ballots list a single candidate followed by No Confidence.
+		Expected winners: A
 
-	naderPercentage = .03
-	bushPercentage = .49
-	gorePercentage = .48
+		Round 0
+			Ballots:
+				6 * [A, NC]
+				5 * [B, NC]
+				1 * [C, NC]
 
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		if i < naderPercentage * num_ballots:
-			ballot.set_candidate_with_rank(nader, 1)
-			ballot.set_candidate_with_rank(gore, 2)
-		elif i < (naderPercentage + bushPercentage) * num_ballots:
-			ballot.set_candidate_with_rank(bush, 1)
-			ballot.set_candidate_with_rank(Ballot.NO_CONFIDENCE, 2)
-		else:
-			ballot.set_candidate_with_rank(gore, 1)
-			ballot.set_candidate_with_rank(nader, 2)
-		ballots.add(ballot)
+			Votes:
+				A: 6
+				B: 5
+				C: 1
+			Threshold: (6+5+1) / (1+1) + 1 = 7
+			Result: C is eliminated
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 1
-	election.ballots = ballots
+		Round 1
+			Ballots:
+				6 * [A, NC]
+				5 * [B, NC]
+				1 * [NC]
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+			Votes:
+				A: 6
+				B: 5
+				NC: 1
+			Threshold: (6+5+1) / (1+1) + 1 = 7
+			Result: NC is eliminated
 
-def runTestCGPGreyAnimalKingdom():
-	description = "CGP Grey's Politics in the Animal Kingdom Test"
-	print(description)
-	print("Generating ballots...")
-	tarsier = "Tarsier"
-	gorilla = "Gorilla"
-	monkey = "Monkey"
-	tiger = "Tiger"
-	lynx = "Lynx"
-	num_ballots = 10000
-	ballots = set()
-	
-	tarsier_percentage = .05
-	gorilla_percentage = .28
-	monkey_percentage = .33
-	tiger_percentage = .21
-	lynx_percentage = .13
-	
-	tarsier_max_range = tarsier_percentage
-	gorilla_max_range = tarsier_max_range + gorilla_percentage
-	monkey_max_range = gorilla_max_range + monkey_percentage
-	tiger_max_range = monkey_max_range + tiger_percentage
-	
-	for i in xrange(num_ballots):
-		ballot = Ballot()
-		if i < tarsier_max_range * num_ballots:
-			# tarsier-preferred ballots
-			ballot.set_candidate_with_rank(tarsier, 1)
-			ballot.set_candidate_with_rank(gorilla, 2)
-		elif i < gorilla_max_range * num_ballots:
-			# gorilla-preferred ballots
-			ballot.set_candidate_with_rank(gorilla, 1)
-			ballot.set_candidate_with_rank(tarsier, 2)
-			ballot.set_candidate_with_rank(monkey, 3)
-		elif i < monkey_max_range * num_ballots:
-			# monkey-preferred ballots
-			ballot.set_candidate_with_rank(monkey, 1)
-		elif i < tiger_max_range * num_ballots:
-			# tiger-preferred ballots
-			ballot.set_candidate_with_rank(tiger, 1)
-		else:
-			# lynx-preferred ballots
-			ballot.set_candidate_with_rank(lynx, 1)
-			ballot.set_candidate_with_rank(tiger, 2)
-			ballot.set_candidate_with_rank(tarsier, 3)
-			ballot.set_candidate_with_rank(monkey, 4)
-			ballot.set_candidate_with_rank(gorilla, 5)
-		ballots.add(ballot)
+		Round 2
+			Ballots:
+				6 * [A]
+				5 * [B]
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 3
-	election.ballots = ballots
+			Votes:
+				A: 6
+				B: 5
+			Threshold: (6+5) / (1+1) + 1 = 6.5
+			Result: B is eliminated
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		Round 3
+			Ballots:
+				6 * [A]
 
-def runTestWikipediaFoodSelection():
-	description = "Wikipedia's Food Selection Example Test"
-	print(description)
-	print("Generating ballots...")
-	oranges = "Oranges"
-	pears = "Pears"
-	chocolate = "Chocolate"
-	strawberries = "Strawberries"
-	sweets = "Sweets"
-	ballots = set()
-	
-	# Oranges-preferred ballots
-	for i in xrange(4):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(oranges, 1)
-		ballots.add(ballot)
-	
-	# Pears-preferred ballots
-	for i in xrange(2):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(pears, 1)
-		ballot.set_candidate_with_rank(oranges, 2)
-		ballots.add(ballot)
-	
-	# Chocolate-preferred ballots (type 1)
-	for i in xrange(8):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(chocolate, 1)
-		ballot.set_candidate_with_rank(strawberries, 2)
-		ballots.add(ballot)
-	
-	# Chocolate-preferred ballots (type 2)
-	for i in xrange(4):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(chocolate, 1)
-		ballot.set_candidate_with_rank(sweets, 2)
-		ballots.add(ballot)
-	
-	# Strawberries-preferred ballots
-	for i in xrange(1):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(strawberries, 1)
-		ballots.add(ballot)
-	
-	# Sweets-preferred ballots
-	for i in xrange(1):
-		ballot = Ballot()
-		ballot.set_candidate_with_rank(sweets, 1)
-		ballots.add(ballot)
+			Votes:
+				A: 6
+			Threshold: (6) / (1+1) + 1 = 4
+			Result: A is elected
+		"""
+		# Setup
+		expected_winners = set(candidates_for_ids(['A']))
+		seats = 1
+		tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-	print("Running election...")
-	election = Election()
-	election.name = description
-	election.seats = 3
-	election.ballots = ballots
+		ballots = set(
+			ballots_for_ids(['A', 'NC'], 6) |
+			ballots_for_ids(['B', 'NC'], 5) |
+			ballots_for_ids(['C', 'NC'], 1))
 
-	winners = election.compute_winners(verbose=True)
-	print(winners)
+		# Test
+		election = Election(seats=seats,
+							ballots=ballots,
+							random_alphanumeric=tiebreak_alphanumeric)
+		results = election.compute_results()
+		self.assertEqual(expected_winners, results.candidates_elected)
 
-runTestWikipediaFoodSelection()
+
+class TestTiebreaks(unittest.TestCase):
+	pass
+
+class TestLargeElections(unittest.TestCase):
+	def test_26_candidates_10_seats(self):
+		pass
+
+	def test_cgp_grey_animal_kingdom(self):
+		pass
+
+	def test_wikipedia_food_selection(self):
+		pass
+
+
+if __name__ == '__main__':
+    unittest.main()

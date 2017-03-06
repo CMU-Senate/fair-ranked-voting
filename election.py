@@ -17,39 +17,81 @@
 import copy
 import math
 import random
+import string
+
+CAN_ELIMINATE_NO_CONFIDENCE = True
+CAN_USE_RANDOM_TIEBREAK = True
+
+class Candidate:
+    """
+    The Candidate class represents a candidate with a name and uid.
+    """
+    def __init__(self, name, uid):
+        # String representing the candidate's name
+        self.name = name
+        # String representing the candidate's unique identifier
+        self.uid = uid
+    
+    def __eq__(self, other):
+        if isinstance(other, Candidate):
+            return self.uid == other.uid
+
+    def __hash__(self):
+        return hash(self.uid)
+
+    def __repr__(self):
+        """
+        Prints the candidate, depicting name and uid.
+        """
+        return "%s (%s)" % (self.name, self.uid)
+
+class NoConfidence(Candidate):
+    """
+    The NoConfidence class represents the special candidate option
+    of voting No Confidence.
+    """
+    def __init__(self):
+        self.name = "No Confidence"
+        self.uid = ""
 
 class Ballot:
     """
-    The Ballot class represents a ballot consisting of ranked candidates. Each
-    candidate on the ballot is mapped to by a ranking. The rankings must be
-    continuous with no duplicates.
+    The Ballot class represents a ballot consisting of ranked candidates.
     
     The candidate who would be awarded the vote_value of the ballot is the
     preferred_active_candidate, the most preferred candidate that has not been
-    eliminated. Candidates are represented by strings of their names.
+    eliminated.
     """
-    
-    # Static constant that always refers to the No Confidence option on the ballot
-    NO_CONFIDENCE = "No Confidence"
 
     def __init__(self, vote_value=1.0):
         # The value of the ballot's vote
         self.vote_value = vote_value
         
         # The internal rank mapping to the most preferred active candidate
-        self._preferred_active_rank = 1
+        self._preferred_active_rank = 0
         
-        # The internal dictionary mapping ranks to candidates
-        self._ranks = dict()
+        # The internal list mapping ranks to candidates
+        self._candidates = list()
+
+    def candidate_for_rank(self, rank):
+        """
+        Returns the candidate on the ballot at that rank.
+
+        Returns: a Candidate representing candidate at that rank, or None
+        """
+        if (0 <= rank < len(self._candidates)):
+            return self._candidates[rank]
+        else:
+            return None
 
     def preferred_active_candidate(self):
         """
         Returns the most preferred candidate that has not been eliminated.
         
-        Returns: a string representing the preferred active candidate, or None
+        Returns: a Candidate representing the preferred active candidate, or None
         """
-        return self._ranks.get(self._preferred_active_rank)
-        
+        return self.candidate_for_rank(self._preferred_active_rank)
+    
     def eliminate_preferred_candidate(self):
         """
         Increments the rank mapping to the most preferred candidate.
@@ -57,24 +99,29 @@ class Ballot:
         current_preferred_active_candidate = self.preferred_active_candidate()
         if current_preferred_active_candidate == None:
             print("Ballot Error: This ballot has no active candidates.")
-        elif current_preferred_active_candidate == Ballot.NO_CONFIDENCE:
+        elif (not CAN_ELIMINATE_NO_CONFIDENCE
+              and isinstance(current_preferred_active_candidate, NoConfidence)):
             print("Ballot Error: Cannot eliminate No Confidence from a ballot.")
         else:
             self._preferred_active_rank += 1
-        
-    def set_candidate_with_rank(self, candidate, rank):
+    
+    def set_candidates(self, candidates):
         """
-        Maps a rank to a candidate on the ballot.
+        Sets the ballot rankings to the ordered list of candidates.
+        Resets the preferred active rank.
         
         Parameters:
-            - candidate: a string representing the candidate
-            - rank: an int representing the candidate's rank
+            - candidates: a list containing strings representing candidates
         """
-        if self._ranks.get(rank) != None:
-            print("Ballot Error: That rank has already been assigned to a candidate.")
-            assert False
-        self._ranks[rank] = candidate
-       
+        self._candidates = candidates
+        self._preferred_active_rank = 0
+    
+    def __eq(self, other):
+        if isinstance(other, Ballot):
+            return (self.vote_value == other.vote_value
+                and self._preferred_active_rank == other._preferred_active_rank
+                and self._candidates == other._candidates)
+
     def __copy__(self):
         """
         Copies a ballot, including its current active rank.
@@ -84,228 +131,109 @@ class Ballot:
         ballot_copy = Ballot()
         ballot_copy.vote_value = self.vote_value
         ballot_copy._preferred_active_rank = self._preferred_active_rank
-        ballot_copy._ranks = copy.copy(self._ranks)
+        ballot_copy._candidates = copy.copy(self._candidates)
         return ballot_copy
-     
+    
     def __repr__(self):
         """
         Prints the ballot, depicting the candidates and ranks.
         """
         ballot_string = "Ballot %d (worth %.2f votes):" % (id(self), self.vote_value)
-        rank = 1
-        while True:
-            candidate_at_rank = self._ranks.get(rank)
-            if candidate_at_rank == None:
-                break
-            
+        rank = 0
+        for rank in xrange(len(self._candidates)):
             rank_string = "\n(%d) " % (rank)
             
             if rank < self._preferred_active_rank:
                 rank_string += "[Eliminated] "
-                
-            rank_string += candidate_at_rank
+            
+            candidate_at_rank = self._candidates[rank]
+            rank_string += repr(candidate_at_rank)
             
             ballot_string += rank_string
-            rank += 1
+
         return ballot_string
 
-
-class Election_Counter:
+class Vote_Tracker:
     """
-    The Election_Counter class is an internal class used by the Election class
-    for tracking votes, ballot distribution, and winning/losing candidates.
+    The Vote_Tracker class is an internal class
+    for tracking votes for candidates
     """
-    
-    def __init__(self, verbose=False):
-        # The current round of voting
-        # Used for breaking tied by looking at votes from previous rounds
-        self.voting_round = 0
-        
-        # If verbose is True, prints details of vote counting progress
-        self.verbose = verbose
-        
-        # Sets containing the candidates that have won or lost
-        self.winning_candidates = set()
-        self.losing_candidates = set()
-        
-        # Array containing a dict for each round
-        # Each dict maps candidates to their vote totals for that round
-        self._votes_for_candidate_per_round = list()
-        self._votes_for_candidate_per_round.append(dict())
-        
-        # Maps active candidates to their currently-assigned ballots
-        self._ballots_for_candidate = dict()
-    
-    def verbose_print(self, *args, **kwargs):
+
+    def __init__(self):
+        self.votes_cast = 0
+        self._votes_for_candidate = dict()
+
+    def cast_vote_for_candidate(self, candidate, vote_value=1.0):
         """
-        Print objects only if self.verbose is True.
-        """
-        if self.verbose:
-            print(args, kwargs)
-    
-    def advance_voting_round(self):
-        """
-        Increments the voting round, and copies the previous dict of votes for
-        each candidate to the new round.
-        """
-        self.voting_round += 1
-        self._votes_for_candidate_per_round.append(copy.copy(self._votes_for_candidate_per_round[self.voting_round - 1]))
-        assert len(self._votes_for_candidate_per_round) == self.voting_round + 1
-    
-    def updated_ballot_for_eliminated_candidates(self, ballot):
-        """
-        Returns a ballot with an updates preferred_active_candidate such that
-        they are the most preferred candidate is not eliminated, or None.
+        Casts the vote, updating the stored vote totals for the
+        candidate.
         
         Parameters:
-            - ballot: the Ballot to be updated
-        Returns: Ballot copy, with preferred_active_candidate updated or None
-        """
-        updated_ballot = copy.copy(ballot)
-        # Move down the list of preferred candidates for a ballot
-        while True:
-            preferred_candidate = updated_ballot.preferred_active_candidate()
-            # If there are no more preferred candidates, stop
-            if preferred_candidate == None:
-                break
-            # If the new preferred candidate has not been eliminated, stop
-            elif not self.is_candidate_eliminated(preferred_candidate):
-                break
-            else:
-                updated_ballot.eliminate_preferred_candidate()
-        return updated_ballot
-        
-    def cast_ballot(self, ballot):
-        """
-        Casts the ballot, updating the stored vote and ballot totals for the
-        preferred candidate on that ballot. If there is no preferred candidate,
-        the ballot is discarded.
-        
-        Parameters:
-            - ballot: the Ballot to be cast
+            - candidate: the Candidate to receive the vote
+            - vote_value: the value of the vote
         """
         
-        if ballot == None:
-            print("Election_Counter Error: Cannot cast ballot None")
-            assert False
+        if candidate == None:
+            print("Vote_Tracker Error: Cannot cast vote for candidate None")
             return
-        
-        # Cast the ballot for the ballots's preferred active candidate
-        preferred_candidate = ballot.preferred_active_candidate()
-                
-        # If there is no preferred active candidate, the ballot is discarded
-        if preferred_candidate == None:
+
+        if vote_value <= 0.0:
+            print("Vote_Tracker Error: Cannot cast non-positive vote")
             return
-        
-        assert not self.is_candidate_eliminated(preferred_candidate)
-        
-        # Add the ballot to self.ballots_for_candidate
-        # Add ballot.vote_value to self.votes_for_candidate_per_round for the current round
-        if preferred_candidate in self._ballots_for_candidate:
-            self._ballots_for_candidate[preferred_candidate].append(ballot)
-            self._votes_for_candidate_per_round[self.voting_round][preferred_candidate] += ballot.vote_value
-        else:
-            self._ballots_for_candidate[preferred_candidate] = [ballot]
-            self._votes_for_candidate_per_round[self.voting_round][preferred_candidate] = ballot.vote_value
 
-    def active_candidates(self, voting_round=None):
-        """
-        Returns a list of all of the active candidates (i.e. candidates with
-        assigned ballots) for a round.
-        
-        Parameters:
-            - voting_round (optional): the round of voting to use
-                defaults to the current round
-        Returns: a list of candidates
-        """
-        if voting_round is None:
-            voting_round = self.voting_round
-        return self._votes_for_candidate_per_round[voting_round].keys()
+        # Add the vote_value to the total votes_cast
+        self.votes_cast += vote_value
 
-    def is_candidate_eliminated(self, candidate):
-        """
-        Returns if a candidate has been eliminated from the election.
-        
-        Parameters:
-            - candidate: the candidate to check for
-        Returns: True if the candidate has been eliminated, False otherwise
-        """
-        return candidate in self.winning_candidates or candidate in self.losing_candidates
+        # Add the candidate to _votes_for_candidate if missing
+        if candidate not in self._votes_for_candidate:
+            self._votes_for_candidate[candidate] = 0
 
-    def ballots_for_candidate(self, candidate):
+        # Add vote_value to votes_for_candidate
+        self._votes_for_candidate[candidate] += vote_value
+        
+    def votes_for_candidate(self, candidate):
         """
-        Returns all of the ballots currently assigned to a candidate.
+        Returns the candidate's vote total.
         
         Parameters:
-            - candidate: the candidate for the ballots
-        Returns: a set of Ballots
-        """
-        return self._ballots_for_candidate.get(candidate)
-        
-    def votes_for_candidate(self, candidate, voting_round=None):
-        """
-        Returns the candidate's vote total for a round.
-        
-        Parameters:
-            - candidate: the candidate for the votes
-            - voting_round (optional): the round of voting to use
-                defaults to the current round
+            - candidate: the Candidate for the votes
         Returns: a float representing the vote total
         """
-        if voting_round is None:
-            voting_round = self.voting_round
-        return self._votes_for_candidate_per_round[voting_round].get(candidate)
+        return self._votes_for_candidate.get(candidate, 0)
 
-    def candidates_reaching_quota(self, quota, limit_to_candidates=None, voting_round=None):
+    def candidates_reaching_threshold(self, candidates, threshold):
         """
-        Returns the candidate(s) with vote count >= quota.
+        Returns the Candidate(s) with vote count >= threshold.
         
         Parameters:
-            - quota: float representing the minimum quota to reach
-            - limit_to_candidates (optional): set of candidates to check for
-                defaults to all active candidates for the round
-            - voting_round (optional): the round of voting to use
-                defaults to the current round
-        Returns: a set of candidates
+            - candidates: set of Candidates to check for
+            - threshold: float representing the minimum votes to reach
+        Returns: a set of Candidates
         """
-        if voting_round is None:
-            voting_round = self.voting_round
-        if limit_to_candidates is None:
-            limit_to_candidates = self.active_candidates(voting_round)
+        candidates_reaching_threshold = set()
         
-        candidates_reaching_quota = set()
-        
-        # Cycle through candidates and find those meeting the vote quota
-        for candidate in limit_to_candidates:
-            candidate_votes = self.votes_for_candidate(candidate, voting_round=voting_round)
-            if candidate_votes >= quota:
-                candidates_reaching_quota.add(candidate)
+        # Cycle through candidates and find those meeting the vote threshold
+        for candidate in candidates:
+            if self.votes_for_candidate(candidate) >= threshold:
+                candidates_reaching_threshold.add(candidate)
                 
-        return candidates_reaching_quota
+        return candidates_reaching_threshold
 
-    def candidates_with_fewest_votes(self, limit_to_candidates=None, voting_round=None):
+    def candidates_with_fewest_votes(self, candidates):
         """
-        Returns the candidate(s) with the fewest votes.
+        Returns the Candidate(s) with the fewest votes.
         
         Parameters:
-            - limit_to_candidates (optional): set of candidates to check for
-                defaults to all active candidates for the round
-            - voting_round (optional): the round of voting to use
-                defaults to the current round
-        Returns: a set of candidates
-        """
-        if voting_round is None:
-            voting_round = self.voting_round
-        if limit_to_candidates is None:
-            limit_to_candidates = self.active_candidates(voting_round)
-            
+            - candidates: set of Candidates to check for
+        Returns: a set of Candidates
+        """ 
         candidates_with_fewest_votes = set()
         fewest_votes = -1
         
         # Cycle through candidates and find those with the fewest votes
-        for candidate in limit_to_candidates:
-            candidate_votes = self.votes_for_candidate(candidate, voting_round=voting_round)
-            is_fewest_votes_unset = fewest_votes == -1
+        for candidate in candidates:
+            is_fewest_votes_unset = (fewest_votes == -1)
+            candidate_votes = self.votes_for_candidate(candidate)
             if candidate_votes <= fewest_votes or is_fewest_votes_unset:
                 if candidate_votes < fewest_votes or is_fewest_votes_unset:
                     fewest_votes = candidate_votes
@@ -313,54 +241,58 @@ class Election_Counter:
                 candidates_with_fewest_votes.add(candidate)
         
         return candidates_with_fewest_votes
-        
-    def declare_winner(self, candidate, quota):
-        """
-        Marks a candidate as winning, removing them from the election and
-        redistributing any surplus votes by splitting them amongst their
-        ballots' next preferences.
-        
-        Parameters:
-            - candidate: the candidate to declare winner
-            - quota: the quota to use for redistributing surplus votes
-        """
-        self.winning_candidates.add(candidate)
-        candidate_ballots = self._ballots_for_candidate.pop(candidate)
-        candidate_votes = self._votes_for_candidate_per_round[self.voting_round].pop(candidate)
-        
-        self.verbose_print("%s is declared a winner, with %.2f votes in this round." % (candidate, candidate_votes))
-        
-        # If a candidate's votes exceed the quota, redistribute surplus votes
-        if candidate_votes > quota and candidate != Ballot.NO_CONFIDENCE:
-            surplus = candidate_votes - quota
-            surplus_multiplier = (surplus / candidate_votes)
-            # The surplus votes are distributed evenly amongst all ballots
-            # This results in fractional votes for each ballot's next preference
-            for candidate_ballot in candidate_ballots:
-                updated_ballot = self.updated_ballot_for_eliminated_candidates(candidate_ballot)
-                updated_ballot.vote_value *= surplus_multiplier
-                self.cast_ballot(updated_ballot)
-                
-            self.verbose_print("%s's surplus of %.2f votes will be redistributed amongst their ballots, each worth %.2f votes." % (candidate, surplus, surplus_multiplier))
-        
-    def declare_loser(self, candidate):
-        """
-        Marks a candidate as losing, removing them from the election and
-        redistributing all of their votes to their ballots' next preferences.
-        
-        Parameters:
-            - candidate: the candidate to declare loser
-        """
-        self.losing_candidates.add(candidate)
-        candidate_ballots = self._ballots_for_candidate.pop(candidate)
-        candidate_votes = self._votes_for_candidate_per_round[self.voting_round].pop(candidate)
-        
-        self.verbose_print("%s has the fewest votes and will be eliminated, with %.2f votes in this round. Their votes will be redistributed amongst their ballots." % (candidate, candidate_votes))
-        
-        for candidate_ballot in candidate_ballots:
-            updated_ballot = self.updated_ballot_for_eliminated_candidates(candidate_ballot)
-            self.cast_ballot(updated_ballot)
 
+    def __repr__(self):
+        """
+        Prints information contained in the Vote_Tracker.
+        """
+        vote_string = ""
+        for candidate in sorted(self._votes_for_candidate, key=self._votes_for_candidate.get, reverse=True):
+            vote_string += "\n%s: %d" % (candidate, self._votes_for_candidate[candidate])
+        description = "<Vote_Tracker %s%s>" % (id(self), vote_string)
+        return description
+        
+
+class Election_Round:
+    """
+    The Election_Round class is an internal class
+    for tracking all of the election data for a given round.
+    """
+
+    def __init__(self, vote_tracker=None):
+        # The vote threshold to be elected
+        self.threshold = 0
+
+        # Set containing the candidates elected in this round
+        self.candidates_elected = set()
+
+        # Set containing the candidates eliminated in this round
+        self.candidates_eliminated = set()
+
+        # The Vote_Tracker for the round
+        self.vote_tracker = vote_tracker
+
+    def __repr__(self):
+        """
+        Prints information about the election round.
+        """
+        round_string = "<Election_Round %d>" % (id(self))
+        return round_string
+
+
+class Election_Results:
+    def __init__(self, name="", seats=0, ballots=list(), random_alphanumeric=None):
+        self.name = name
+
+        self.seats = seats
+
+        self.ballots = ballots
+
+        self.random_alphanumeric = random_alphanumeric
+
+        self.election_rounds = list()
+
+        self.candidates_elected = set()
 
 class Election:
     """
@@ -369,154 +301,249 @@ class Election:
     is used to compute and return the winners of the election.
     """
     
-    def __init__(self, name="", seats=1, is_final_tiebreak_manual=False):
+    def __init__(self, name="", seats=1, random_alphanumeric=None, ballots=list()):
         # The name of the election, for bookkeeping and verbose printing
         self.name = name
         
         # The number of open seats this election should fill
         self.seats = seats
         
+        # A randomly-sorted alphanumeric string
+        self.random_alphanumeric = random_alphanumeric
+
         # The set of all ballots cast in the election
-        self.ballots = list()
-        
-        # If candidates are tied for fewest votes for all current and previous rounds:
-        # If manual tiebreak, the user will be prompted to eliminate a candidate
-        # If not manual tiebreak, a random candidate will be eliminated
-        self.is_final_tiebreak_manual = is_final_tiebreak_manual
-    
-    def droop_quota(self, num_ballots, seats):
+        self.ballots = ballots
+            
+    def droop_quota(self, votes, seats_vacant):
         """
         Calculates the Droop Quota, which is the minimum number of votes a
         candidate must receive in order to be elected outright.
         
         Parameters:
-            - num_ballots: int representing the number of ballots cast
-            - seats: int representing the number of open seats to fill
+            - votes: double representing the value of votes cast
+            - seats_vacant: int representing the number of open seats to fill
         Returns: An int representing the vote quota
         """
-        return math.floor(num_ballots / (seats + 1)) + 1
+        return (float(votes) / (float(seats_vacant) + 1.0)) + 1.0
     
-    def compute_winners(self, verbose=False):
+    def compute_results(self):
         """
-        Compute the winners of the Election using single transferable vote.
+        Run the Election using single transferable vote.
         
-        Parameters:
-            - verbose (optional): if True, prints details of election progress
-                defaults to False
-        Returns: set containing strings representing the winning candidates
+        Returns: An Election_Results object containing the election results
         """
-        # Initialize the election counter
-        counter = Election_Counter(verbose=verbose)
-                    
-        # Determine the vote quota to be elected
-        quota = self.droop_quota(len(self.ballots), self.seats)
-        
-        if (verbose):
-            print("***** Election: %s *****" % self.name)
-            print("There were %d ballots cast to fill %d seat(s)." % (len(self.ballots), self.seats))
-            print("A quota of %d votes is required to win outright." % (quota))
-        
-        # Cast initial ballots
-        for ballot in self.ballots:
-            counter.cast_ballot(copy.copy(ballot))
-                
-        while len(counter.winning_candidates) < self.seats:
-            counter.advance_voting_round()
-            
-            if (verbose):
-                print("\n*** Voting Round %d ***" % counter.voting_round)
-            
-            remaining_candidates = counter.active_candidates()
-            remaining_seats = self.seats - len(counter.winning_candidates)
-            
-            # Check for a winner (a candidate whose votes meet the quota)
-            winners_for_round = counter.candidates_reaching_quota(quota)
-            
-            # Declare any winners, redistributing their surplus votes 
-            if len(winners_for_round) > 0:
-                for winning_candidate in winners_for_round:
-                    counter.declare_winner(winning_candidate, quota)
-                # If No Confidence wins, end the election
-                if Ballot.NO_CONFIDENCE in counter.winning_candidates:
-                    if(verbose):
-                        print("%s has been declared a winner, so no further rounds will be conducted." % (Ballot.NO_CONFIDENCE))
-                    break
-                    
-            # If the remaining seats must be filled by the remaining candidates, fill them
-            # No Confidence cannot be eliminated, but if it has the fewest
-            # votes, fill the remaining seats with the rest of the candidates
-            elif (len(remaining_candidates) <= remaining_seats or
-                 (len(remaining_candidates) <= remaining_seats + 1 and
-                  Ballot.NO_CONFIDENCE in remaining_candidates and
-                  Ballot.NO_CONFIDENCE in counter.candidates_with_fewest_votes())):
-                
-                remaining_candidates_to_fill = remaining_candidates    
-                
-                # In the case where No Confidence has the fewest votes and the
-                # other candidates fill the remaining seats, discard No Confidence
-                if len(remaining_candidates_to_fill) == remaining_seats + 1:
-                    remaining_candidates_to_fill.remove(Ballot.NO_CONFIDENCE)
 
-                # Fill the remaining seats with the remaining candidates,
-                # even though they will not meet the quota
-                assert len(remaining_candidates_to_fill) <= remaining_seats
-                for candidate in remaining_candidates_to_fill:
-                    counter.declare_winner(candidate, quota)
-                    if (verbose):
-                        print("%s is declared a winner in order to fill a remaining seat." % (candidate))
-                if verbose and len(counter.winning_candidates) < self.seats:
-                    print("There were not enough candidates to fill all seats.")
-                break
-                
-            # If no winners are declared for the round, eliminate the candidate with the fewest votes
-            else:
-                # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
-                active_candidates = set(counter.active_candidates())
-                if Ballot.NO_CONFIDENCE in active_candidates:
-                    active_candidates.remove(Ballot.NO_CONFIDENCE)
-                candidates_to_eliminate = counter.candidates_with_fewest_votes(limit_to_candidates=active_candidates)
-                assert len(candidates_to_eliminate) >= 1
-                
-                # If multiple candidates have the fewest votes in a round, choose the candidate with the fewest votes in the previous round
-                # Repeat if multiple candidates remain tied with the fewest votes
-                previous_voting_round = counter.voting_round - 1
-                while(len(candidates_to_eliminate) > 1 and previous_voting_round >= 0):
-                    candidates_to_eliminate = counter.candidates_with_fewest_votes(limit_to_candidates=candidates_to_eliminate, voting_round=previous_voting_round)
-                    previous_voting_round -= 1
-                
-                # If only one candidate remains, choose the only candidate from the set
-                if len(candidates_to_eliminate) == 1:
-                    (losing_candidate,) = candidates_to_eliminate
-                    counter.declare_loser(losing_candidate)
-                
-                # If multiple candidates are still tied for fewest votes,
-                # a final tiebreak is required.
+        election_rounds = list()
+        current_round = 0
+
+        ballots_active = set(copy.copy(self.ballots))
+        ballots_exhausted = set()
+
+        candidates_elected = set()
+        candidates_eliminated = set()
+
+        ##########
+        # Generate random alphanumeric (if none provided)
+        ##########
+        tiebreak_alphanumeric = self.random_alphanumeric
+        if tiebreak_alphanumeric == None:
+            alphanumeric = string.printable
+            tiebreak_alphanumeric = ''.join(random.sample(alphanumeric,
+                                                          len(alphanumeric)))
+        ##########
+        # STV Algorithm
+        ##########
+        while len(candidates_elected) < self.seats:
+            current_round += 1
+            vote_tracker = Vote_Tracker()
+            ballots_for_candidate = dict()
+
+            election_round = Election_Round(vote_tracker=vote_tracker)
+            election_rounds.append(election_round)
+
+            ##########
+            # Count and assign votes from ballots
+            ##########
+            for ballot in ballots_active:
+                # Determine preferred active candidate
+                while True:
+                    # If no preferred candidate, ballot is exhausted, break
+                    # If candidate has not been elected or eliminated, break
+                    candidate = ballot.preferred_active_candidate()
+                    if (candidate == None or
+                        candidate not in candidates_elected and
+                        candidate not in candidates_eliminated):
+                        break
+                    
+                    # Otherwise, remove the candidate from the ballot
+                    ballot.eliminate_preferred_candidate()
+
+                # If ballot has no active candidates, it is exhausted
+                candidate = ballot.preferred_active_candidate()
+                if candidate == None:
+                    ballots_exhausted.add(ballot)
+
+                # If ballot has no value, it is exhausted
+                elif ballot.vote_value <= 0.0:
+                    ballots_exhausted.add(ballot)
+
+                # Otherwise, record the ballot and cast its vote
                 else:
-                    # If the election has manual final tiebreaks,
-                    # prompt the user to eliminate a candidate
-                    if self.is_final_tiebreak_manual:
-                        print("\nManual Tiebreak Required:")
-                        print("The below candidates are tied for fewest votes for all current and previous rounds:")
-                        for candidate_to_eliminate in candidates_to_eliminate:
-                            print(candidate_to_eliminate)
+                    vote_tracker.cast_vote_for_candidate(candidate, vote_value=ballot.vote_value)
+
+                    if candidate not in ballots_for_candidate:
+                        ballots_for_candidate[candidate] = set()
+
+                    ballots_for_candidate[candidate].add(ballot)            
+
+            # Remove exhausted ballots
+            ballots_active = ballots_active.difference(ballots_exhausted)
+            # End election if no candidates remain
+            if len(ballots_for_candidate) == 0:
+                break
+
+            # If remaining candidates less than or equal to remaining seats
+            # elect candidates whose votes exceed that of No Confidence
+            seats_vacant = self.seats - len(candidates_elected)
+            if len(ballots_for_candidate) <= seats_vacant:
+                # Determine the number of votes for No Confidence
+                no_confidence_threshold = 0
+                for candidate in ballots_for_candidate:
+                    if isinstance(candidate, NoConfidence):
+                        no_confidence_threshold = vote_tracker.votes_for_candidate(candidate)
+
+                # Elect all candidates with more votes than No Confidence and end election
+                candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), no_confidence_threshold)
+                candidates_elected.update(candidates_to_elect)
+                election_round.candidates_elected = candidates_to_elect
+                break
+
+            ##########
+            # Calculate threshold
+            ##########
+            # Threshold changes per round based on votes cast and seats vacant
+            threshold = self.droop_quota(vote_tracker.votes_cast, seats_vacant)
+            election_round.threshold = threshold
+
+            ##########
+            # If winners, transfer surplus, move to next round
+            ##########
+            candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), threshold)
+            candidates_elected.update(candidates_to_elect)
+            election_round.candidates_elected = candidates_to_elect
+
+            if len(candidates_to_elect) > 0:
+                no_confidence_elected = False
+                for candidate in candidates_to_elect:
+                    # Calculate vote surplus
+                    votes = vote_tracker.votes_for_candidate(candidate)
+                    surplus = votes - threshold
+
+                    # Assign fractional value to ballots
+                    vote_multiplier = surplus / votes
+                    for ballot in ballots_for_candidate[candidate]:
+                        ballot.vote_value *= vote_multiplier
+
+                    # Check if elected candidate is No Confidence
+                    if isinstance(candidate, NoConfidence):
+                        no_confidence_elected = True
+
+                # If No Confidence was elected, end the election
+                if no_confidence_elected:
+                    break
+
+                # Move on to the next round after transferring surplus
+                continue
+
+            ##########
+            # Eliminate loser, transfer votes
+            ##########
+            # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
+            candidates_to_eliminate = set()
+            for candidate in ballots_for_candidate.keys():
+                if CAN_ELIMINATE_NO_CONFIDENCE or not isinstance(candidate, NoConfidence):
+                    candidates_to_eliminate.add(candidate)
+
+            candidates_to_eliminate = vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
+            assert len(candidates_to_eliminate) >= 1
+
+            # If multiple candidates have the fewest votes in a round, choose the candidate with the fewest votes in the previous round
+            # Repeat if multiple candidates remain tied with the fewest votes
+            previous_round = current_round - 1
+            while(len(candidates_to_eliminate) > 1 and previous_round >= 0):
+                candidates_to_eliminate = election_rounds[previous_round].vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
+                previous_round -= 1
+
+            # If there is still a tie for elimination, choose the candidate with the fewest votes in ballots' next rank
+            # Repeat is multiple candidates remain tied with the fewest votes
+            if len(candidates_to_eliminate) > 1:
+                ballots_active_copy = copy.deepcopy(ballots_active)
+                ballots_exhausted_copy = copy.deepcopy(ballots_exhausted)
+                while(len(candidates_to_eliminate) > 1 and len(ballots_active_copy) > 1):
+                    forward_vote_tracker = Vote_Tracker()
+                    for ballot in ballots_active_copy:
+                        # Determine preferred active candidate
+                        if CAN_ELIMINATE_NO_CONFIDENCE or not isinstance(ballot.preferred_active_candidate(), NoConfidence):
+                            ballot.eliminate_preferred_candidate()
+
                         while True:
-                            manually_eliminated_candidate = raw_input("\nSelect a candidate to eliminate: ")
-                            if manually_eliminated_candidate in candidates_to_eliminate:
-                                counter.declare_loser(manually_eliminated_candidate)
+                            # If no preferred candidate, ballot is exhausted, break
+                            # If candidate has not been elected or eliminated, break
+                            candidate = ballot.preferred_active_candidate()
+                            if (candidate == None or
+                                candidate not in candidates_elected and
+                                candidate not in candidates_eliminated):
                                 break
-                            else:
-                                print("The candidate to eliminate must be in the above list.")
-                    else:
-                        # Eliminate a random candidate
-                        losing_candidate = random.sample(candidates_to_eliminate, 1).pop()
-                        counter.declare_loser(losing_candidate)
-        
-        if verbose:
-            print("\n*** Conclusion ***")
-            print("After %d rounds, the following candidate(s) have been declared winner to fill %d seat(s):" % (counter.voting_round, self.seats))
-            for winning_candidate in counter.winning_candidates:
-                print(winning_candidate)
-            print("***** End Election *****\n")
-        
-        assert len(counter.winning_candidates) <= self.seats
-        return counter.winning_candidates
+                            
+                            # Otherwise, remove the candidate from the ballot
+                            ballot.eliminate_preferred_candidate()
+
+                        candidate = ballot.preferred_active_candidate()
+                        # If ballot is exhausted, add it to exhausted ballots
+                        if candidate == None:
+                            ballots_exhausted_copy.add(ballot)
+                        # Remove No Confidence ballots if not eligible to be eliminated
+                        elif not CAN_ELIMINATE_NO_CONFIDENCE and isinstance(candidate, NoConfidence):
+                            ballots_exhausted_copy.add(ballot)
+
+                        # Otherwise, record the ballot and cast its vote
+                        else:
+                            forward_vote_tracker.cast_vote_for_candidate(candidate, vote_value=ballot.vote_value)
+
+                    candidates_to_eliminate = forward_vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
+                    # Remove exhausted ballots
+                    ballots_active_copy = ballots_active_copy.difference(ballots_exhausted_copy)
+            
+            candidate_to_eliminate = None
+            # If only one candidate remains, choose the only candidate from the set
+            if len(candidates_to_eliminate) == 1:
+                (candidate_to_eliminate,) = candidates_to_eliminate
+            else:
+                # If random tiebreaks are not allowed, and the election early
+                if not CAN_USE_RANDOM_TIEBREAK:
+                    print("Election Error: Tie cannot be broken.")
+                    break
+
+                # Sort the candidates by uid according to the random alphanumeric
+                candidates_random_sort = sorted(candidates_to_eliminate, key=lambda candidate: [tiebreak_alphanumeric.index(c) for c in candidate.uid])
+                # Eliminate the first candidate in this random sort that is not No Confidence
+                for candidate in candidates_random_sort:
+                    if not isinstance(candidate, NoConfidence):
+                        candidate_to_eliminate = candidate
+                        break
+
+            # Eliminate candidate_to_eliminate and transfer surplus
+            candidates_eliminated.add(candidate_to_eliminate)
+            election_round.candidates_eliminated = [candidate_to_eliminate]
+            
+        ##########
+        # Election is over; return results
+        ##########
+        results = Election_Results(name=self.name,
+                                   seats=self.seats,
+                                   ballots=self.ballots,
+                                   random_alphanumeric=tiebreak_alphanumeric)
+        results.candidates_elected = candidates_elected
+        results.rounds = election_rounds
+
+        return results

@@ -19,9 +19,6 @@ import math
 import random
 import string
 
-CAN_ELIMINATE_NO_CONFIDENCE = True
-CAN_USE_RANDOM_TIEBREAK = True
-
 class Candidate:
     """
     The Candidate class represents a candidate with a name and uid.
@@ -99,9 +96,6 @@ class Ballot:
         current_preferred_active_candidate = self.preferred_active_candidate()
         if current_preferred_active_candidate == None:
             print("Ballot Error: This ballot has no active candidates.")
-        elif (not CAN_ELIMINATE_NO_CONFIDENCE
-              and isinstance(current_preferred_active_candidate, NoConfidence)):
-            print("Ballot Error: Cannot eliminate No Confidence from a ballot.")
         else:
             self._preferred_active_rank += 1
     
@@ -301,7 +295,7 @@ class Election:
     is used to compute and return the winners of the election.
     """
     
-    def __init__(self, name="", seats=1, random_alphanumeric=None, ballots=list()):
+    def __init__(self, name="", seats=1, random_alphanumeric=None, ballots=list(), can_eliminate_no_confidence=True):
         # The name of the election, for bookkeeping and verbose printing
         self.name = name
         
@@ -313,6 +307,9 @@ class Election:
 
         # The set of all ballots cast in the election
         self.ballots = ballots
+
+        # Flag for allowing the elimination of No Confidence in election
+        self.can_eliminate_no_confidence = can_eliminate_no_confidence
             
     def droop_quota(self, votes, seats_vacant):
         """
@@ -461,7 +458,7 @@ class Election:
             # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
             candidates_to_eliminate = set()
             for candidate in ballots_for_candidate.keys():
-                if CAN_ELIMINATE_NO_CONFIDENCE or not isinstance(candidate, NoConfidence):
+                if self.can_eliminate_no_confidence or not isinstance(candidate, NoConfidence):
                     candidates_to_eliminate.add(candidate)
 
             candidates_to_eliminate = vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
@@ -483,7 +480,7 @@ class Election:
                     forward_vote_tracker = Vote_Tracker()
                     for ballot in ballots_active_copy:
                         # Determine preferred active candidate
-                        if CAN_ELIMINATE_NO_CONFIDENCE or not isinstance(ballot.preferred_active_candidate(), NoConfidence):
+                        if self.can_eliminate_no_confidence or not isinstance(ballot.preferred_active_candidate(), NoConfidence):
                             ballot.eliminate_preferred_candidate()
 
                         while True:
@@ -503,7 +500,7 @@ class Election:
                         if candidate == None:
                             ballots_exhausted_copy.add(ballot)
                         # Remove No Confidence ballots if not eligible to be eliminated
-                        elif not CAN_ELIMINATE_NO_CONFIDENCE and isinstance(candidate, NoConfidence):
+                        elif not self.can_eliminate_no_confidence and isinstance(candidate, NoConfidence):
                             ballots_exhausted_copy.add(ballot)
 
                         # Otherwise, record the ballot and cast its vote
@@ -519,11 +516,6 @@ class Election:
             if len(candidates_to_eliminate) == 1:
                 (candidate_to_eliminate,) = candidates_to_eliminate
             else:
-                # If random tiebreaks are not allowed, and the election early
-                if not CAN_USE_RANDOM_TIEBREAK:
-                    print("Election Error: Tie cannot be broken.")
-                    break
-
                 # Sort the candidates by uid according to the random alphanumeric
                 candidates_random_sort = sorted(candidates_to_eliminate, key=lambda candidate: [tiebreak_alphanumeric.index(c) for c in candidate.uid])
                 # Eliminate the first candidate in this random sort that is not No Confidence

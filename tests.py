@@ -71,6 +71,7 @@ class TestSmallElections(unittest.TestCase):
     def test_1_candidate_1_seat(self):
         """
         Tests a 1 candidate election for 1 seat.
+
         Expected winners: A
 
         Round 0
@@ -98,6 +99,7 @@ class TestSmallElections(unittest.TestCase):
     def test_2_candidates_1_seat(self):
         """
         Tests a 2 candidate election for 1 seat.
+
         Expected winners: B
 
         Round 0
@@ -129,6 +131,7 @@ class TestSmallElections(unittest.TestCase):
     def test_3_candidates_1_seat(self):
         """
         Tests a 3 candidate election for 1 seat.
+
         Expected winners: C
 
         Round 0
@@ -173,6 +176,7 @@ class TestSmallElections(unittest.TestCase):
     def test_1_candidate_2_seats(self):
         """
         Tests a 1 candidate election for 2 seats.
+
         Expected winners: A
 
         Round 0
@@ -201,6 +205,7 @@ class TestSmallElections(unittest.TestCase):
     def test_3_candidates_2_seats(self):
         """
         Tests a 3 candidate election for 2 seats.
+
         Expected winners: C
 
         Round 0
@@ -256,6 +261,7 @@ class TestSmallElections(unittest.TestCase):
     def test_4_candidates_2_seats(self):
         """
         Tests a 4 candidate election for 2 seats.
+
         Expected winners: A, B
 
         Round 0
@@ -337,6 +343,7 @@ class TestNoConfidence(unittest.TestCase):
         """
         Tests a 3 candidate election for 3 seats.
         Once No Confidence is elected, the election should end.
+
         Expected winners: B, NC
 
         Round 0
@@ -398,6 +405,7 @@ class TestNoConfidence(unittest.TestCase):
         Tests a 2 candidate election for 3 seats.
         When empty seats are filled, only candidates with votes exceeding that
         of No Confidence may be elected.
+
         Expected winners: A, NC
 
         Round 0
@@ -436,6 +444,7 @@ class TestNoConfidence(unittest.TestCase):
         """
         Tests a 3 candidate election for 1 seat.
         All of the ballots list a single candidate followed by No Confidence.
+
         Expected winners: A
 
         Round 0
@@ -505,6 +514,7 @@ class TestNoConfidence(unittest.TestCase):
         Tests a 3 candidate election for 1 seat.
         All of the ballots list a single candidate followed by No Confidence.
         No Confidence is cannot be eliminated for having the fewest votes.
+
         Expected winners: NC
 
         Round 0
@@ -575,6 +585,7 @@ class TestTiebreaks(unittest.TestCase):
         In the event of a tie to eliminate a candidate, eliminate the candidate
         with the fewest votes in the previous round. Repeat for all previous
         rounds if necessary.
+
         Expected winners: A, C
 
         Round 0
@@ -647,6 +658,7 @@ class TestTiebreaks(unittest.TestCase):
         In the event of a tie to eliminate a candidate, and no backward
         tiebreak, eliminate the candidate with the fewest next-choice votes.
         Repeat for all subsequent ranks as necessary.
+
         Expected winners: A, C
 
         Round 0
@@ -703,6 +715,7 @@ class TestTiebreaks(unittest.TestCase):
         Tests a 3 candidate election for 2 seats.
         In the event of a tie to eliminate a candidate, and no backward
         tiebreak or forward tiebreak, eliminate a random candidate based on uid.
+
         Expected winners: A, C
 
         Round 0
@@ -758,10 +771,115 @@ class TestTiebreaks(unittest.TestCase):
 class TestLargeElections(unittest.TestCase):
 
     def test_cgp_grey_animal_kingdom(self):
-        pass
+        """
+        Tests CGP Grey's example STV election 'Politics in the Animal Kingdom'
+        Link: https://www.youtube.com/watch?v=l8XOZJkozfI
+
+        Expected winners: Gorilla, Monkey, Tiger
+        """
+        # Setup
+        tarsier = Candidate('Tarsier', 'tarsier')
+        gorilla = Candidate('Gorilla', 'gorilla')
+        monkey = Candidate('Monkey', 'monkey')
+        tiger = Candidate('Tiger', 'tiger')
+        lynx = Candidate('Lynx', 'lynx')
+
+        expected_winners = set([gorilla, monkey, tiger])
+        seats = 3
+        tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
+
+        num_ballots = 10000
+        ballots = set(
+            ballots_for_candidates([tarsier, gorilla], int(.05 * num_ballots)) |
+            ballots_for_candidates([gorilla, tarsier, monkey], int(.28 * num_ballots)) |
+            ballots_for_candidates([monkey], int(.33 * num_ballots)) |
+            ballots_for_candidates([tiger], int(.21 * num_ballots)) |
+            ballots_for_candidates([lynx, tiger, tarsier, monkey, gorilla], int(.13 * num_ballots)))
+
+        # Test
+        election = Election(seats=seats,
+                            ballots=ballots,
+                            random_alphanumeric=tiebreak_alphanumeric)
+        results = election.compute_results()
+        self.assertEqual(expected_winners, results.candidates_elected)
+
+    def test_cgp_grey_stv_election_walkthrough(self):
+        """
+        Tests CGP Grey's example STV election 'Extra: STV Election Walkthrough'
+        Link: https://www.youtube.com/watch?v=Ac9070OIMUg
+
+        Expected winners: Gorilla, Silverback, Owl, Turtle, Tiger
+        """
+        # Setup
+        tarsier = Candidate('Tarsier', 'tarsier')
+        gorilla = Candidate('Gorilla', 'gorilla')
+        silverback = Candidate('Silverback', 'silverback')
+        owl = Candidate('Owl', 'owl')
+        turtle = Candidate('Turtle', 'turtle')
+        snake = Candidate('Snake', 'snake')
+        tiger = Candidate('Tiger', 'tiger')
+        lynx = Candidate('Lynx', 'lynx')
+        jackalope = Candidate('Jackalope', 'jackalope')
+        buffalo = Candidate('Buffalo', 'buffalo')
+
+        expected_winners = set([gorilla, silverback, owl, turtle, tiger])
+        seats = 5
+        tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
+
+        num_ballots = 10000
+        ballots = set(
+            ballots_for_candidates([tarsier, silverback], int(.05 * num_ballots)) |
+            ballots_for_candidates([gorilla, silverback], int(.21 * num_ballots)) |
+            ballots_for_candidates([gorilla, tarsier, silverback], int(.11 * num_ballots)) |
+            ballots_for_candidates([silverback], int(.03 * num_ballots)) |
+            ballots_for_candidates([owl, turtle], int(.33 * num_ballots)) |
+            ballots_for_candidates([turtle], int(.01 * num_ballots)) |
+            ballots_for_candidates([snake, turtle], int(.01 * num_ballots)) |
+            ballots_for_candidates([tiger], int(.16 * num_ballots)) |
+            ballots_for_candidates([lynx, tiger], int(.04 * num_ballots)) |
+            ballots_for_candidates([jackalope], int(.02 * num_ballots)) |
+            ballots_for_candidates([buffalo, jackalope], int(.02 * num_ballots)) |
+            ballots_for_candidates([buffalo, jackalope, turtle], int(.01 * num_ballots)))
+
+        # Test
+        election = Election(seats=seats,
+                            ballots=ballots,
+                            random_alphanumeric=tiebreak_alphanumeric)
+        results = election.compute_results()
+        self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_wikipedia_food_selection(self):
-        pass
+        """
+        Tests Wikipedia's example STV election, using choices of food.
+        Link: https://en.wikipedia.org/wiki/Single_transferable_vote#Example
+
+        Expected winners: Chocolate, Oranges, Strawberries
+        """
+        # Setup
+        chocolate = Candidate('Chocolate', 'chocolate')
+        oranges = Candidate('Oranges', 'oranges')
+        pears = Candidate('Pears', 'pears')
+        strawberries = Candidate('Strawberries', 'strawberries')
+        sweets = Candidate('Sweets', 'sweets')
+
+        expected_winners = set([chocolate, oranges, strawberries])
+        seats = 3
+        tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
+
+        ballots = set(
+            ballots_for_candidates([oranges], 4) |
+            ballots_for_candidates([pears, oranges], 2) |
+            ballots_for_candidates([chocolate, strawberries], 8) |
+            ballots_for_candidates([chocolate, sweets], 4) |
+            ballots_for_candidates([strawberries], 1) |
+            ballots_for_candidates([sweets], 1))
+
+        # Test
+        election = Election(seats=seats,
+                            ballots=ballots,
+                            random_alphanumeric=tiebreak_alphanumeric)
+        results = election.compute_results()
+        self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_florida_2000_presidential(self):
         """
@@ -805,10 +923,10 @@ class TestLargeElections(unittest.TestCase):
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
         ballots = set(
-            ballots_for_candidates([bush], 29127) | #2912790
-            ballots_for_candidates([gore], 29122) | #2912253
-            ballots_for_candidates([nader, bush], 324) | #32496
-            ballots_for_candidates([nader, gore], 649)) #64992
+            ballots_for_candidates([bush], 29127) |
+            ballots_for_candidates([gore], 29122) |
+            ballots_for_candidates([nader, bush], 324) |
+            ballots_for_candidates([nader, gore], 649))
 
         # Test
         election = Election(seats=seats,

@@ -1,5 +1,5 @@
-# stv_election.py: runs an election using single transferable vote
-# Copyright (C) 2016 Carnegie Mellon Student Senate. Created by Devin Gund.
+# interface.py: provides an interface to input ballots and run elections
+# Copyright (C) 2016 Devin Gund
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

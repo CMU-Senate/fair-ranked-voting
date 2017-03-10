@@ -1,5 +1,5 @@
-# stv_compute_tests.py: computes election results using single transferable vote
-# Copyright (C) 2016 Carnegie Mellon Student Senate. Created by Devin Gund.
+# tests.py: unit tests for election.py
+# Copyright (C) 2016 Devin Gund
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ def candidates_for_ids(candidate_ids):
 
 def ballots_for_candidates(candidates, count):
     ballots = set()
-    for i in xrange(count):
+    for i in range(count):
         ballot = Ballot()
         ballot.set_candidates(candidates)
         ballots.add(ballot)

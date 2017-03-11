@@ -19,43 +19,63 @@ from __future__ import print_function
 from election import *
 import unittest
 
-candidate_for_id = {
-    'NC': NoConfidence(),
-    'A': Candidate('Devin Gund', 'dgund'),
-    'B': Candidate('George Washington', 'gwashington'),
-    'C': Candidate('John Adams', 'jadams'),
-    'D': Candidate('Thomas Jefferson', 'tjefferson'),
-    'E': Candidate('James Madison', 'jmadison'),
-    'F': Candidate('James Monroe', 'jmonroe'),
-    'G': Candidate('John Quincy Adams', 'jqadams'),
-    'H': Candidate('Andrew Jackson', 'ajackson'),
-    'I': Candidate('Martin Van Buren', 'mvburen'),
-    'J': Candidate('William Harrison', 'wharrison'),
-    'K': Candidate('John Tyler', 'jtyler'),
-    'L': Candidate('James Polk', 'jpolk'),
-    'M': Candidate('Zachary Taylor', 'ztaylor'),
-    'N': Candidate('Millard Fillmore', 'mfillmore'),
-    'O': Candidate('Franklin Pierce', 'fpierce'),
-    'P': Candidate('James Buchanan', 'jbuchanan'),
-    'Q': Candidate('Abraham Lincoln', 'alincoln'),
-    'R': Candidate('Andrew Johnson', 'ajohnson'),
-    'S': Candidate('Ulysses Grant', 'ugrant'),
-    'T': Candidate('Rutherford Hayes', 'rhayes'),
-    'U': Candidate('James Garfield', 'jgarfield'),
-    'V': Candidate('Chester Arthur', 'carthur'),
-    'W': Candidate('Grover Cleveland', 'gcleveland'),
-    'X': Candidate('Benjamin Harrison', 'bharrison'),
-    'Y': Candidate('William McKinley', 'wmckinley'),
-    'Z': Candidate('Theodore Roosevelt', 'troosevelt'),
-}
-
 def candidates_for_ids(candidate_ids):
+    """Returns an ordered list of Candidates for an ordered list of ids.
+
+    This is helpful for tests where candidates on ballots can be defined as short
+    strings (i.e. 'A', 'B', 'NC') which can then be converted to proper Candidates.
+
+    Args:
+        candidate_ids: List of strings representing candidate ids.
+
+    Returns:
+        List of Candidates corresponding to the given ids.
+    """
+    candidate_for_id = {
+        'NC': NoConfidence(),
+        'A': Candidate('Devin Gund', 'dgund'),
+        'B': Candidate('George Washington', 'gwashington'),
+        'C': Candidate('John Adams', 'jadams'),
+        'D': Candidate('Thomas Jefferson', 'tjefferson'),
+        'E': Candidate('James Madison', 'jmadison'),
+        'F': Candidate('James Monroe', 'jmonroe'),
+        'G': Candidate('John Quincy Adams', 'jqadams'),
+        'H': Candidate('Andrew Jackson', 'ajackson'),
+        'I': Candidate('Martin Van Buren', 'mvburen'),
+        'J': Candidate('William Harrison', 'wharrison'),
+        'K': Candidate('John Tyler', 'jtyler'),
+        'L': Candidate('James Polk', 'jpolk'),
+        'M': Candidate('Zachary Taylor', 'ztaylor'),
+        'N': Candidate('Millard Fillmore', 'mfillmore'),
+        'O': Candidate('Franklin Pierce', 'fpierce'),
+        'P': Candidate('James Buchanan', 'jbuchanan'),
+        'Q': Candidate('Abraham Lincoln', 'alincoln'),
+        'R': Candidate('Andrew Johnson', 'ajohnson'),
+        'S': Candidate('Ulysses Grant', 'ugrant'),
+        'T': Candidate('Rutherford Hayes', 'rhayes'),
+        'U': Candidate('James Garfield', 'jgarfield'),
+        'V': Candidate('Chester Arthur', 'carthur'),
+        'W': Candidate('Grover Cleveland', 'gcleveland'),
+        'X': Candidate('Benjamin Harrison', 'bharrison'),
+        'Y': Candidate('William McKinley', 'wmckinley'),
+        'Z': Candidate('Theodore Roosevelt', 'troosevelt'),
+    }
+
     candidates = []
     for candidate_id in candidate_ids:
         candidates.append(candidate_for_id[candidate_id])
     return candidates
 
 def ballots_for_candidates(candidates, count):
+    """Returns a list of Ballots for the given Candidates and count.
+
+    Args:
+        candidates: List of Candidates.
+        count: Integer value of the number of Ballots to create.
+
+    Returns:
+        List of Ballots for the given Candidates, with the given count.
+    """
     ballots = []
     for i in range(count):
         ballot = Ballot()
@@ -64,13 +84,21 @@ def ballots_for_candidates(candidates, count):
     return ballots
 
 def ballots_for_ids(candidate_ids, count):
+    """Returns a list of Ballots for the given ids and count.
+
+    Args:
+        candidate_ids: List of strings representing candidate ids.
+        count: Integer value of the number of Ballots to create.
+
+    Returns:
+        List of Ballots for the given ids, with the given count.
+    """
     return ballots_for_candidates(candidates_for_ids(candidate_ids), count)
 
 class TestSmallElections(unittest.TestCase):
 
     def test_1_candidate_1_seat(self):
-        """
-        Tests a 1 candidate election for 1 seat.
+        """Tests a 1 candidate election for 1 seat.
 
         Expected winners: A
 
@@ -97,8 +125,7 @@ class TestSmallElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_2_candidates_1_seat(self):
-        """
-        Tests a 2 candidate election for 1 seat.
+        """Tests a 2 candidate election for 1 seat.
 
         Expected winners: B
 
@@ -129,8 +156,7 @@ class TestSmallElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_3_candidates_1_seat(self):
-        """
-        Tests a 3 candidate election for 1 seat.
+        """Tests a 3 candidate election for 1 seat.
 
         Expected winners: C
 
@@ -174,8 +200,7 @@ class TestSmallElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_1_candidate_2_seats(self):
-        """
-        Tests a 1 candidate election for 2 seats.
+        """Tests a 1 candidate election for 2 seats.
 
         Expected winners: A
 
@@ -203,8 +228,7 @@ class TestSmallElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_3_candidates_2_seats(self):
-        """
-        Tests a 3 candidate election for 2 seats.
+        """Tests a 3 candidate election for 2 seats.
 
         Expected winners: C
 
@@ -259,8 +283,7 @@ class TestSmallElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_4_candidates_2_seats(self):
-        """
-        Tests a 4 candidate election for 2 seats.
+        """Tests a 4 candidate election for 2 seats.
 
         Expected winners: A, B
 
@@ -340,8 +363,8 @@ class TestSmallElections(unittest.TestCase):
 class TestNoConfidence(unittest.TestCase):
 
     def test_nc_halt_early(self):
-        """
-        Tests a 3 candidate election for 3 seats.
+        """ Tests a 3 candidate election for 3 seats.
+
         Once No Confidence is elected, the election should end.
 
         Expected winners: B, NC
@@ -401,8 +424,8 @@ class TestNoConfidence(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_nc_halt_end(self):
-        """
-        Tests a 2 candidate election for 3 seats.
+        """Tests a 2 candidate election for 3 seats.
+
         When empty seats are filled, only candidates with votes exceeding that
         of No Confidence may be elected.
 
@@ -441,8 +464,8 @@ class TestNoConfidence(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_election_with_nc_elimination(self):
-        """
-        Tests a 3 candidate election for 1 seat.
+        """Tests a 3 candidate election for 1 seat.
+
         All of the ballots list a single candidate followed by No Confidence.
 
         Expected winners: A
@@ -510,8 +533,8 @@ class TestNoConfidence(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_election_without_nc_elimination(self):
-        """
-        Tests a 3 candidate election for 1 seat.
+        """Tests a 3 candidate election for 1 seat.
+
         All of the ballots list a single candidate followed by No Confidence.
         No Confidence is cannot be eliminated for having the fewest votes.
 
@@ -580,8 +603,8 @@ class TestNoConfidence(unittest.TestCase):
 class TestTiebreaks(unittest.TestCase):
     
     def test_backward_tiebreak(self):
-        """
-        Tests a 3 candidate election for 2 seats.
+        """Tests a 3 candidate election for 2 seats.
+
         In the event of a tie to eliminate a candidate, eliminate the candidate
         with the fewest votes in the previous round. Repeat for all previous
         rounds if necessary.
@@ -653,8 +676,8 @@ class TestTiebreaks(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_forward_tiebreak(self):
-        """
-        Tests a 3 candidate election for 2 seats.
+        """Tests a 3 candidate election for 2 seats.
+
         In the event of a tie to eliminate a candidate, and no backward
         tiebreak, eliminate the candidate with the fewest next-choice votes.
         Repeat for all subsequent ranks as necessary.
@@ -711,8 +734,8 @@ class TestTiebreaks(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_random_tiebreak(self):
-        """
-        Tests a 3 candidate election for 2 seats.
+        """Tests a 3 candidate election for 2 seats.
+
         In the event of a tie to eliminate a candidate, and no backward
         tiebreak or forward tiebreak, eliminate a random candidate based on uid.
 
@@ -771,8 +794,8 @@ class TestTiebreaks(unittest.TestCase):
 class TestLargeElections(unittest.TestCase):
 
     def test_cgp_grey_animal_kingdom(self):
-        """
-        Tests CGP Grey's example STV election 'Politics in the Animal Kingdom'
+        """Tests CGP Grey example STV election 'Politics in the Animal Kingdom'
+
         Link: https://www.youtube.com/watch?v=l8XOZJkozfI
 
         Expected winners: Gorilla, Monkey, Tiger
@@ -804,8 +827,8 @@ class TestLargeElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_cgp_grey_stv_election_walkthrough(self):
-        """
-        Tests CGP Grey's example STV election 'Extra: STV Election Walkthrough'
+        """Tests CGP Grey example STV election 'Extra: STV Election Walkthrough'
+
         Link: https://www.youtube.com/watch?v=Ac9070OIMUg
 
         Expected winners: Gorilla, Silverback, Owl, Turtle, Tiger
@@ -849,8 +872,8 @@ class TestLargeElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_wikipedia_food_selection(self):
-        """
-        Tests Wikipedia's example STV election, using choices of food.
+        """Tests Wikipedia's example STV election, using choices of food.
+
         Link: https://en.wikipedia.org/wiki/Single_transferable_vote#Example
 
         Expected winners: Chocolate, Oranges, Strawberries
@@ -882,12 +905,12 @@ class TestLargeElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_florida_2000_presidential(self):
-        """
-        Tests the 2000 Florida presidential election, scaled 1%, as an example
-        of a close election between two major candidates and a third-party.
-        Link: https://en.wikipedia.org/wiki/United_States_presidential_election_in_Florida,_2000
+        """Tests the 2000 Florida presidential election, scaled 1%.
+
+        An example of a election between two major candidates and a third-party.
         For the sake of ranking votes, this test assumes that Nader supporters
         prefer Gore to Bush by a 2:1 margin, which is not necessarily true.
+        Link: https://en.wikipedia.org/wiki/United_States_presidential_election_in_Florida,_2000
 
         Expected winners: Gore
 
@@ -936,8 +959,8 @@ class TestLargeElections(unittest.TestCase):
         self.assertEqual(expected_winners, results.candidates_elected)
 
     def test_10_candidates_6_seats(self):
-        """
-        Tests a 10 candidate election for 6 seats
+        """Tests a 10 candidate election for 6 seats
+
         Expected winners: D, E, G, A, F, J
 
         Candidates

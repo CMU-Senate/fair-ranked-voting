@@ -1,4 +1,4 @@
-# interface.py: provides an interface to input ballots and run elections
+# run.py: provides an interface to input ballots and run elections
 # Copyright (C) 2016 Devin Gund
 #
 # This program is free software: you can redistribute it and/or modify

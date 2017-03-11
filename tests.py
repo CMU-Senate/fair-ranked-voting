@@ -56,11 +56,11 @@ def candidates_for_ids(candidate_ids):
     return candidates
 
 def ballots_for_candidates(candidates, count):
-    ballots = set()
+    ballots = []
     for i in range(count):
         ballot = Ballot()
         ballot.set_candidates(candidates)
-        ballots.add(ballot)
+        ballots.append(ballot)
     return ballots
 
 def ballots_for_ids(candidate_ids, count):
@@ -86,7 +86,7 @@ class TestSmallElections(unittest.TestCase):
         expected_winners = set(candidates_for_ids(['A']))
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
-        ballots = set(
+        ballots = (
             ballots_for_ids(['A'], 10))
 
         # Test
@@ -117,8 +117,8 @@ class TestSmallElections(unittest.TestCase):
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'B'], 5) |
+        ballots = (
+            ballots_for_ids(['A', 'B'], 5) +
             ballots_for_ids(['B', 'A'], 10))
 
         # Test
@@ -161,9 +161,9 @@ class TestSmallElections(unittest.TestCase):
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'C'], 5) |
-            ballots_for_ids(['B'], 10) |
+        ballots = (
+            ballots_for_ids(['A', 'C'], 5) +
+            ballots_for_ids(['B'], 10) +
             ballots_for_ids(['C'], 7))
 
         # Test
@@ -192,7 +192,7 @@ class TestSmallElections(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
+        ballots = (
             ballots_for_ids(['A'], 10))
 
         # Test
@@ -246,9 +246,9 @@ class TestSmallElections(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A'], 7) |
-            ballots_for_ids(['B', 'C'], 10) |
+        ballots = (
+            ballots_for_ids(['A'], 7) +
+            ballots_for_ids(['B', 'C'], 10) +
             ballots_for_ids(['C'], 7))
 
         # Test
@@ -324,10 +324,10 @@ class TestSmallElections(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'NC'], 10) |
-            ballots_for_ids(['B', 'NC'], 16) |
-            ballots_for_ids(['C', 'NC'], 15) |
+        ballots = (
+            ballots_for_ids(['A', 'NC'], 10) +
+            ballots_for_ids(['B', 'NC'], 16) +
+            ballots_for_ids(['C', 'NC'], 15) +
             ballots_for_ids(['D', 'A'], 7))
 
         # Test
@@ -387,10 +387,10 @@ class TestNoConfidence(unittest.TestCase):
         seats = 3
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'NC'], 5) |
-            ballots_for_ids(['B', 'NC'], 6) |
-            ballots_for_ids(['C', 'NC'], 4) |
+        ballots = (
+            ballots_for_ids(['A', 'NC'], 5) +
+            ballots_for_ids(['B', 'NC'], 6) +
+            ballots_for_ids(['C', 'NC'], 4) +
             ballots_for_ids(['NC'], 5))
 
         # Test
@@ -428,9 +428,9 @@ class TestNoConfidence(unittest.TestCase):
         seats = 3
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A'], 10) |
-            ballots_for_ids(['B'], 6) |
+        ballots = (
+            ballots_for_ids(['A'], 10) +
+            ballots_for_ids(['B'], 6) +
             ballots_for_ids(['NC'], 8))
 
         # Test
@@ -497,9 +497,9 @@ class TestNoConfidence(unittest.TestCase):
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'NC'], 6) |
-            ballots_for_ids(['B', 'NC'], 5) |
+        ballots = (
+            ballots_for_ids(['A', 'NC'], 6) +
+            ballots_for_ids(['B', 'NC'], 5) +
             ballots_for_ids(['C', 'NC'], 1))
 
         # Test
@@ -564,9 +564,9 @@ class TestNoConfidence(unittest.TestCase):
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A', 'NC'], 6) |
-            ballots_for_ids(['B', 'NC'], 5) |
+        ballots = (
+            ballots_for_ids(['A', 'NC'], 6) +
+            ballots_for_ids(['B', 'NC'], 5) +
             ballots_for_ids(['C', 'NC'], 1))
 
         # Test
@@ -639,10 +639,10 @@ class TestTiebreaks(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A'], 6) |
-            ballots_for_ids(['B'], 3) |
-            ballots_for_ids(['C'], 2) |
+        ballots = (
+            ballots_for_ids(['A'], 6) +
+            ballots_for_ids(['B'], 3) +
+            ballots_for_ids(['C'], 2) +
             ballots_for_ids(['D', 'C'], 1))
 
         # Test
@@ -698,9 +698,9 @@ class TestTiebreaks(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A'], 6) |
-            ballots_for_ids(['B', 'C'], 3) |
+        ballots = (
+            ballots_for_ids(['A'], 6) +
+            ballots_for_ids(['B', 'C'], 3) +
             ballots_for_ids(['C'], 3))
 
         # Test
@@ -756,9 +756,9 @@ class TestTiebreaks(unittest.TestCase):
         seats = 2
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['A'], 6) |
-            ballots_for_ids(['B'], 3) |
+        ballots = (
+            ballots_for_ids(['A'], 6) +
+            ballots_for_ids(['B'], 3) +
             ballots_for_ids(['C'], 3))
 
         # Test
@@ -789,11 +789,11 @@ class TestLargeElections(unittest.TestCase):
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
         num_ballots = 10000
-        ballots = set(
-            ballots_for_candidates([tarsier, gorilla], int(.05 * num_ballots)) |
-            ballots_for_candidates([gorilla, tarsier, monkey], int(.28 * num_ballots)) |
-            ballots_for_candidates([monkey], int(.33 * num_ballots)) |
-            ballots_for_candidates([tiger], int(.21 * num_ballots)) |
+        ballots = (
+            ballots_for_candidates([tarsier, gorilla], int(.05 * num_ballots)) +
+            ballots_for_candidates([gorilla, tarsier, monkey], int(.28 * num_ballots)) +
+            ballots_for_candidates([monkey], int(.33 * num_ballots)) +
+            ballots_for_candidates([tiger], int(.21 * num_ballots)) +
             ballots_for_candidates([lynx, tiger, tarsier, monkey, gorilla], int(.13 * num_ballots)))
 
         # Test
@@ -827,18 +827,18 @@ class TestLargeElections(unittest.TestCase):
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
         num_ballots = 10000
-        ballots = set(
-            ballots_for_candidates([tarsier, silverback], int(.05 * num_ballots)) |
-            ballots_for_candidates([gorilla, silverback], int(.21 * num_ballots)) |
-            ballots_for_candidates([gorilla, tarsier, silverback], int(.11 * num_ballots)) |
-            ballots_for_candidates([silverback], int(.03 * num_ballots)) |
-            ballots_for_candidates([owl, turtle], int(.33 * num_ballots)) |
-            ballots_for_candidates([turtle], int(.01 * num_ballots)) |
-            ballots_for_candidates([snake, turtle], int(.01 * num_ballots)) |
-            ballots_for_candidates([tiger], int(.16 * num_ballots)) |
-            ballots_for_candidates([lynx, tiger], int(.04 * num_ballots)) |
-            ballots_for_candidates([jackalope], int(.02 * num_ballots)) |
-            ballots_for_candidates([buffalo, jackalope], int(.02 * num_ballots)) |
+        ballots = (
+            ballots_for_candidates([tarsier, silverback], int(.05 * num_ballots)) +
+            ballots_for_candidates([gorilla, silverback], int(.21 * num_ballots)) +
+            ballots_for_candidates([gorilla, tarsier, silverback], int(.11 * num_ballots)) +
+            ballots_for_candidates([silverback], int(.03 * num_ballots)) +
+            ballots_for_candidates([owl, turtle], int(.33 * num_ballots)) +
+            ballots_for_candidates([turtle], int(.01 * num_ballots)) +
+            ballots_for_candidates([snake, turtle], int(.01 * num_ballots)) +
+            ballots_for_candidates([tiger], int(.16 * num_ballots)) +
+            ballots_for_candidates([lynx, tiger], int(.04 * num_ballots)) +
+            ballots_for_candidates([jackalope], int(.02 * num_ballots)) +
+            ballots_for_candidates([buffalo, jackalope], int(.02 * num_ballots)) +
             ballots_for_candidates([buffalo, jackalope, turtle], int(.01 * num_ballots)))
 
         # Test
@@ -866,12 +866,12 @@ class TestLargeElections(unittest.TestCase):
         seats = 3
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_candidates([oranges], 4) |
-            ballots_for_candidates([pears, oranges], 2) |
-            ballots_for_candidates([chocolate, strawberries], 8) |
-            ballots_for_candidates([chocolate, sweets], 4) |
-            ballots_for_candidates([strawberries], 1) |
+        ballots = (
+            ballots_for_candidates([oranges], 4) +
+            ballots_for_candidates([pears, oranges], 2) +
+            ballots_for_candidates([chocolate, strawberries], 8) +
+            ballots_for_candidates([chocolate, sweets], 4) +
+            ballots_for_candidates([strawberries], 1) +
             ballots_for_candidates([sweets], 1))
 
         # Test
@@ -922,10 +922,10 @@ class TestLargeElections(unittest.TestCase):
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_candidates([bush], 29127) |
-            ballots_for_candidates([gore], 29122) |
-            ballots_for_candidates([nader, bush], 324) |
+        ballots = (
+            ballots_for_candidates([bush], 29127) +
+            ballots_for_candidates([gore], 29122) +
+            ballots_for_candidates([nader, bush], 324) +
             ballots_for_candidates([nader, gore], 649))
 
         # Test
@@ -1201,22 +1201,22 @@ class TestLargeElections(unittest.TestCase):
         seats = 6
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
-        ballots = set(
-            ballots_for_ids(['G', 'F', 'H'], 14) |
-            ballots_for_ids(['J'], 12) |
-            ballots_for_ids(['F', 'G'], 11) |
-            ballots_for_ids(['A', 'B', 'C'], 11) |
-            ballots_for_ids(['D', 'E', 'A'], 8) |
-            ballots_for_ids(['D', 'E', 'A', 'B'], 8) |
-            ballots_for_ids(['D', 'E', 'C', 'F'], 8) |
-            ballots_for_ids(['E', 'D', 'F', 'G', 'H'], 8) |
-            ballots_for_ids(['E', 'D', 'G'], 8) |
-            ballots_for_ids(['D', 'E', 'NC'], 8) |
-            ballots_for_ids(['I', 'A', 'B', 'C'], 7) |
-            ballots_for_ids(['H', 'G'], 6) |
-            ballots_for_ids(['C', 'B', 'A'], 6) |
-            ballots_for_ids(['J', 'NC'], 6) |
-            ballots_for_ids(['B', 'A', 'C'], 3) |
+        ballots = (
+            ballots_for_ids(['G', 'F', 'H'], 14) +
+            ballots_for_ids(['J'], 12) +
+            ballots_for_ids(['F', 'G'], 11) +
+            ballots_for_ids(['A', 'B', 'C'], 11) +
+            ballots_for_ids(['D', 'E', 'A'], 8) +
+            ballots_for_ids(['D', 'E', 'A', 'B'], 8) +
+            ballots_for_ids(['D', 'E', 'C', 'F'], 8) +
+            ballots_for_ids(['E', 'D', 'F', 'G', 'H'], 8) +
+            ballots_for_ids(['E', 'D', 'G'], 8) +
+            ballots_for_ids(['D', 'E', 'NC'], 8) +
+            ballots_for_ids(['I', 'A', 'B', 'C'], 7) +
+            ballots_for_ids(['H', 'G'], 6) +
+            ballots_for_ids(['C', 'B', 'A'], 6) +
+            ballots_for_ids(['J', 'NC'], 6) +
+            ballots_for_ids(['B', 'A', 'C'], 3) +
             ballots_for_ids(['I', 'A', 'C', 'B'], 3))
 
         # Test

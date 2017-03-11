@@ -18,121 +18,138 @@ import copy
 import string
 
 class Candidate:
-    """
-    The Candidate class represents a candidate with a name and uid.
+    """Candidate with a name and unique identifier.
+
+    Attributes:
+        name: String representing the name of the Candidate.
+        uid: String representing the unique identifier of the Candidate. Used
+            for equality, hashing, and ordering in a random tiebreak.
     """
 
     def __init__(self, name, uid):
-        # String: Name of the Candidate
-        self.name = name
+        """Initializes Candidate with name and uid.
 
-        # String: Unique identifier for the Candidate
+        Args:
+            name: String representing the name of the Candidate.
+            uid: String representing the unique identifier of the Candidate. Used
+                for equality, hashing, and ordering in a random tiebreak.
+        """
+        self.name = name
         self.uid = uid
-    
+
     def __eq__(self, other):
+        """Checks equality between two Candidates using uids.
+
+        Args:
+            other: Candidate to check equality with.
+
+        Returns:
+            Boolean indicating if the Candidates are equal or not.
+        """
         if isinstance(other, Candidate):
             return self.uid == other.uid
 
     def __hash__(self):
+        """Returns the hash value of the Candidate.
+
+        Returns:
+            Integer hash value of the Candidate.
+        """
         return hash(self.uid)
 
     def __repr__(self):
+        """Returns a printable system representation of the Candidate.
+
+        Returns:
+            String containing the printable representation of the Candidate.
+        """
         return 'Candidate({!r}, {!r})'.format(self.name, self.uid)
 
     def __str__(self):
+        """Returns a printable user representation of the Candidate.
+
+        Returns:
+            String containing the printable representation of the Candidate.
+        """
         return '{} ({})'.format(self.name, self.uid)
 
 
 class NoConfidence(Candidate):
-    """
-    The NoConfidence class represents the special candidate option
-    of voting No Confidence.
+    """No Confidence ballot option, which is treated like a Candidate.
+
+    Attributes:
+        name: String representing the name of NoConfidence.
+        uid: String representing the unique identifier of NoConfidence.
     """
 
     def __init__(self):
+        """Initializes NoConfidence."""
         self.name = 'No Confidence'
         self.uid = ''
 
     def __repr__(self):
+        """Returns a printable system representation of NoConfidence.
+
+        Returns:
+            String containing the printable representation of NoConfidence.
+        """
         return 'NoConfidence()'
 
 
 class Ballot:
-    """
-    The Ballot class represents a ballot consisting of ranked candidates.
-    
-    The candidate who would be awarded the vote_value of the ballot is the
-    preferred_active_candidate, the most preferred candidate that has not been
-    eliminated.
+    """Ballot consisting of ranked candidates and a vote value
+
+    The vote value of the ballot is awarded to the most preferred candidate that
+    has not been eliminated.
+
+    Attributes:
+        vote_value: Value of the Ballot's vote. Defaults to 1.0.
+        _candidates: List of Candidates ordered by preferred rank.
+        _preferred_active_rank: Integer rank of the preferred active candidate.
     """
 
-    def __init__(self, vote_value=1.0, candidates=None, starting_rank=0):
-        # Float: Value of the ballot's vote
+    def __init__(self, candidates=None, starting_rank=0, vote_value=1.0):
+        """Initializes Ballot with vote value, candidates, and starting rank.
+
+        Args:
+            candidates: List of Candidates ordered by preferred rank. Defaults
+                to an empty list.
+            vote_value: Value of the Ballot's vote. Defaults to 1.0.
+            starting_rank: Integer rank of the initial preferred candidate.
+                Defaults to 0.
+        """
         self.vote_value = vote_value
-
-        # [Candidate]: List mapping ranks to candidates
         self._candidates = candidates if candidates != None else list()
-
-        # Int: Rank mapping to the most preferred active candidate
         self._preferred_active_rank = starting_rank
 
-    def candidate_for_rank(self, rank):
-        """
-        Returns the candidate on the ballot at that rank.
+    def __eq__(self, other):
+        """Checks equality between two Ballots.
 
-        Returns: a Candidate representing candidate at that rank, or None
-        """
-        if (0 <= rank < len(self._candidates)):
-            return self._candidates[rank]
-        else:
-            return None
+        Args:
+            other: Ballot to check equality with.
 
-    def preferred_active_candidate(self):
+        Returns:
+            Boolean indicating if the Ballots are equal or not.
         """
-        Returns the most preferred candidate that has not been eliminated.
-        
-        Returns: a Candidate representing the preferred active candidate, or None
-        """
-        return self.candidate_for_rank(self._preferred_active_rank)
-    
-    def eliminate_preferred_candidate(self):
-        """
-        Increments the rank mapping to the most preferred candidate.
-        """
-        current_preferred_active_candidate = self.preferred_active_candidate()
-        if current_preferred_active_candidate == None:
-            print('Ballot Error: This ballot has no active candidates.')
-        else:
-            self._preferred_active_rank += 1
-    
-    def set_candidates(self, candidates):
-        """
-        Sets the ballot rankings to the ordered list of candidates.
-        Resets the preferred active rank.
-        
-        Parameters:
-            - candidates: a list containing strings representing candidates
-        """
-        self._candidates = candidates
-        self._preferred_active_rank = 0
-    
-    def __eq(self, other):
         if isinstance(other, Ballot):
             return (self.vote_value == other.vote_value
                 and self._preferred_active_rank == other._preferred_active_rank
                 and self._candidates == other._candidates)
 
-    def __copy__(self):
-        ballot_copy = Ballot()
-        ballot_copy.vote_value = self.vote_value
-        ballot_copy._preferred_active_rank = self._preferred_active_rank
-        ballot_copy._candidates = copy.deepcopy(self._candidates)
-        return ballot_copy
-    
     def __repr__(self):
+        """Returns a printable system representation of the Ballot.
+
+        Returns:
+            String containing the printable representation of the Ballot.
+        """
         return 'Ballot(vote_value={!r}, candidates={!r}, starting_rank={!r})'.format(self.vote_value, self._candidates, self._preferred_active_rank)
 
     def __str__(self):
+        """Returns a printable user representation of the Ballot.
+
+        Returns:
+            String containing the printable representation of the Ballot.
+        """
         ballot_string = 'Ballot (worth {:.3f}) with remaining candidates:'.format(self.vote_value)
         for rank in range(self._preferred_active_rank, len(self._candidates)):
             ballot_string += ' {}'.format(self.candidate_for_rank(rank))
@@ -141,27 +158,104 @@ class Ballot:
 
         return ballot_string
 
+    def candidate_for_rank(self, rank):
+        """Returns the Candidate on the Ballot for the given rank.
+
+        Args:
+            rank: Integer rank of the Candidate.
+
+        Returns:
+            Candidate on the Ballot at that rank, or None.
+        """
+        if (0 <= rank < len(self._candidates)):
+            return self._candidates[rank]
+        else:
+            return None
+
+    def preferred_active_candidate(self):
+        """Returns the most preferred Candidate that has not been eliminated.
+
+        Returns:
+            Candidate on the Ballot at the preferred active rank, or None.
+        """
+        return self.candidate_for_rank(self._preferred_active_rank)
+    
+    def eliminate_preferred_candidate(self):
+        """Eliminates the current preferred active Candidate."""
+        current_preferred_active_candidate = self.preferred_active_candidate()
+        if current_preferred_active_candidate == None:
+            print('Ballot Error: This ballot has no active candidates.')
+        else:
+            self._preferred_active_rank += 1
+    
+    def set_candidates(self, candidates):
+        """Resets the ballot rankings to the ordered list of Candidates.
+
+        Args:
+            candidates: List of Candidates ordered by preferred rank.
+        """
+        self._candidates = candidates
+        self._preferred_active_rank = 0
+
 
 class VoteTracker:
-    """
-    The VoteTracker class tracks votes for candidates.
+    """Vote Tracker for assigning votes to Candidates.
+
+    Attributes:
+        votes_cast: Float value of the total votes cast.
+        _votes_for_candidate: Dict mapping Candidates to float values of votes.
     """
 
-    def __init__(self, votes_for_candidate=None, votes_cast=0.0):
-        # Float: Total value of votes cast
+    def __init__(self, votes_cast=0.0, votes_for_candidate=None):
+        """Initializes VoteTracker with votes cast and votes for candidates.
+
+        Args:
+            votes_cast: Float value of the total votes cast.
+            votes_for_candidate: Dict mapping Candidates to float values of
+                votes.
+        """
         self.votes_cast = votes_cast
-
-        # {Candidate: Float}: Maps Candidates to their votes
         self._votes_for_candidate = votes_for_candidate if votes_for_candidate != None else dict()
 
-    def cast_vote_for_candidate(self, candidate, vote_value=1.0):
+    def __eq__(self, other):
+        """Checks equality between two VoteTrackers.
+
+        Args:
+            other: VoteTracker to check equality with.
+
+        Returns:
+            Boolean indicating if the VoteTrackers are equal or not.
         """
-        Casts the vote, updating the stored vote totals for the
-        candidate.
-        
-        Parameters:
-            - candidate: the Candidate to receive the vote
-            - vote_value: the value of the vote
+        if isinstance(other, VoteTracker):
+            return (self.votes_cast == other.votes_cast
+                and self._votes_for_candidate == other._votes_for_candidate)
+
+    def __repr__(self):
+        """Returns a printable system representation of the VoteTracker.
+
+        Returns:
+            String containing the printable representation of the VoteTracker.
+        """
+        return 'VoteTracker(votes_for_candidate={!r}, votes_cast={!r})'.format(self._votes_for_candidate, self.votes_cast)
+
+    def __str__(self):
+        """Returns a printable user representation of the VoteTracker.
+
+        Returns:
+            String containing the printable representation of the VoteTracker.
+        """
+        vote_string = ''
+        for candidate in sorted(self._votes_for_candidate, key=self._votes_for_candidate.get, reverse=True):
+            vote_string += '\n%s: %d' % (candidate, self._votes_for_candidate[candidate])
+        description = '<VoteTracker %s%s>' % (id(self), vote_string)
+        return description
+
+    def cast_vote_for_candidate(self, candidate, vote_value):
+        """Casts the vote for the Candidate, updating the stored vote totals.
+
+        Args:
+            candidate: Candidate to receive the vote.
+            vote_value: Float value of the vote.
         """
         
         if candidate == None:
@@ -179,27 +273,29 @@ class VoteTracker:
         if candidate not in self._votes_for_candidate:
             self._votes_for_candidate[candidate] = 0
 
-        # Add vote_value to votes_for_candidate
+        # Add vote_value to _votes_for_candidate
         self._votes_for_candidate[candidate] += vote_value
         
     def votes_for_candidate(self, candidate):
-        """
-        Returns the candidate's vote total.
-        
-        Parameters:
-            - candidate: the Candidate for the votes
-        Returns: a float representing the vote total
+        """Returns the value of the votes for the given Candidate.
+
+        Args:
+            Candidate: Candidate to obtain the vote value.
+
+        Returns:
+            Float value of the votes for the Candidate.
         """
         return self._votes_for_candidate.get(candidate, 0)
 
     def candidates_reaching_threshold(self, candidates, threshold):
-        """
-        Returns the Candidate(s) with vote count >= threshold.
-        
-        Parameters:
-            - candidates: set of Candidates to check for
-            - threshold: float representing the minimum votes to reach
-        Returns: a set of Candidates
+        """Returns the Candidate(s) with vote values meeting the threshold.
+
+        Args:
+            candidates: Set of Candidates to check.
+            threshold: Float value of the vote threshold.
+
+        Returns:
+            Set of Candidates meeting the vote threshold.
         """
         candidates_reaching_threshold = set()
         
@@ -211,12 +307,13 @@ class VoteTracker:
         return candidates_reaching_threshold
 
     def candidates_with_fewest_votes(self, candidates):
-        """
-        Returns the Candidate(s) with the fewest votes.
-        
-        Parameters:
-            - candidates: set of Candidates to check for
-        Returns: a set of Candidates
+        """Returns the Candidate(s) with the fewest votes.
+
+        Args:
+            candidates: Set of Candidates to check.
+
+        Returns:
+            Set of Candidates with the fewest votes.
         """ 
         candidates_with_fewest_votes = set()
         fewest_votes = -1
@@ -233,111 +330,143 @@ class VoteTracker:
         
         return candidates_with_fewest_votes
 
-    def __repr__(self):
-        return 'VoteTracker(votes_for_candidate={!r}, votes_cast={!r})'.format(self._votes_for_candidate, self.votes_cast)
-
-    def __str__(self):
-        vote_string = ''
-        for candidate in sorted(self._votes_for_candidate, key=self._votes_for_candidate.get, reverse=True):
-            vote_string += '\n%s: %d' % (candidate, self._votes_for_candidate[candidate])
-        description = '<VoteTracker %s%s>' % (id(self), vote_string)
-        return description
-
 
 class ElectionRound:
-    """
-    The ElectionRound class tracks all election data for a given round.
+    """Election data for a round of voting.
+
+    Attributes:
+        candidates_elected: Set of Candidates elected in this round.
+        candidates_eliminated: Set of Candidates eliminated in this round.
+        threshold: Float value of the vote threshold to be elected.
+        vote_tracker: VoteTracker for counting votes in this round.
     """
 
-    def __init__(self, threshold=0, candidates_elected=None, candidates_eliminated=None, vote_tracker=None):
-        # Float: Vote threshold to be elected
+    def __init__(self, candidates_elected=None, candidates_eliminated=None,
+                 threshold=0, vote_tracker=None):
+        """Initializes ElectionRound with threshold, Candidate, and vote data.
+
+        Args:
+            candidates_elected: Set of Candidates elected in this round.
+            candidates_eliminated: Set of Candidates eliminated in this round.
+            threshold: Float value of the vote threshold to be elected.
+            vote_tracker: VoteTracker for counting votes in this round.
+        """
         self.threshold = threshold
-
-        # {Candidate}: Set of Candidates elected in this round
         self.candidates_elected = candidates_elected if candidates_elected != None else set()
-
-        # {Candidate}: Set of Candidates eliminated in this round
         self.candidates_eliminated = candidates_eliminated if candidates_eliminated != None else set()
-
-        # VoteTracker: VoteTracker for the round
         self.vote_tracker = vote_tracker if vote_tracker != None else VoteTracker()
 
     def __repr__(self):
+        """Returns a printable system representation of the ElectionRound.
+
+        Returns:
+            String containing the printable representation of the ElectionRound.
+        """
         return 'ElectionRound(threshold={!r}, candidates_elected={!r}, candidates_eliminated={!r}, vote_tracker={!r})'.format(self.threshold, self.candidates_elected, self.candidates_eliminated, self.vote_tracker)
 
 
 class ElectionResults:
+    """Election results and data for all rounds.
 
-    def __init__(self, name='', seats=0, ballots=None, random_alphanumeric=None, candidates_elected=None, election_rounds=None):
-        # String: Name of the election
+    Attributes:
+        ballots: List of all Ballots.
+        candidates_elected: Set of Candidates elected.
+        election_rounds: List of ElectionRounds.
+        name: String representing the name of the election.
+        random_alphanumeric: String containing the random alphanumeric used for
+            final tiebreaks.
+        seats: Number of vacant seats before the election.
+    """
+
+    def __init__(self, ballots, candidates_elected,
+                 election_rounds, random_alphanumeric,
+                 seats, name=''):
+        """Initializes ElectionResults with election results and data.
+
+        Args:
+            ballots: List of all Ballots.
+            candidates_elected: Set of Candidates elected.
+            election_rounds: List of ElectionRounds.
+            random_alphanumeric: String containing the random alphanumeric used
+                for final tiebreaks.
+            seats: Number of vacant seats before the election.
+            name: String representing the name of the election.
+        """
+        self.ballots = ballots
+        self.candidates_elected = candidates_elected
+        self.election_rounds = election_rounds
         self.name = name
-
-        # Int: Number of vacant seats before the election
+        self.random_alphanumeric = random_alphanumeric
         self.seats = seats
 
-        # [Ballot]: List of all ballots
-        self.ballots = ballots if ballots != None else list()
-
-        # String: Random alphanumeric used for final tiebreaks
-        self.random_alphanumeric = random_alphanumeric
-
-        # {Candidate}: Set of all candidates elected
-        self.candidates_elected = candidates_elected if candidates_elected != None else set()
-
-        # [ElectionRound]: Ordered list of ElectionRounds
-        self.election_rounds = election_rounds if election_rounds != None else list()
-
     def __repr__(self):
+        """Returns a printable system representation of the ElectionResults.
+
+        Returns:
+            String containing the printable representation of the
+            ElectionResults.
+        """
         return 'ElectionResults(name={!r}, seats={!r}, ballots={!r}, random_alphanumeric={!r}, candidates_elected={!r}, election_rounds={!r})'.format(self.name, self.seats, self.ballots, self.random_alphanumeric, self.candidates_elected, self.election_rounds)
 
 
 class Election:
-    """
-    The Election class is the public top-level class for controlling computing
-    the results of an election. The number of seats and the set of all ballots
-    is used to compute and return the winners of the election.
+    """Election configuration and computation.
+
+    Attributes:
+        ballots: List of all Ballots.
+        seats: Number of vacant seats before the election.
+        can_eliminate_no_confidence: Boolean indicating if No Confidence may be
+            eliminated in the election.
+        name: String representing the name of the election. Defaults to an empty
+            string.
+        random_alphanumeric: String containing the random alphanumeric used for
+            final tiebreaks.
     """
     
-    def __init__(self, name="", seats=1, random_alphanumeric=None, ballots=list(), can_eliminate_no_confidence=True):
-        # String: Name of the election
-        self.name = name
-        
-        # Int: Number of vacant seats
-        self.seats = seats
-        
-        # String: Randomly-sorted alphanumeric for final tiebreaks
-        self.random_alphanumeric = random_alphanumeric
+    def __init__(self, ballots, seats, can_eliminate_no_confidence=True,
+                 name='', random_alphanumeric=None):
+        """Initializes Election with ballots, seats, and configuration data.
 
-        # [Ballot]: List of all ballots
-        self.ballots = ballots
-
-        # Bool: Flag for allowing the elimination of No Confidence in election
-        self.can_eliminate_no_confidence = can_eliminate_no_confidence
-            
-    def droop_quota(self, votes, seats_vacant):
+        Args:
+            ballots: List of all Ballots.
+            seats: Number of vacant seats before the election.
+            can_eliminate_no_confidence: Boolean indicating if No Confidence may
+                be eliminated in the election.
+            name: String representing the name of the election.
+            random_alphanumeric: String containing the random alphanumeric used
+                for final tiebreaks.
         """
-        Calculates the Droop Quota, which is the minimum number of votes a
-        candidate must receive in order to be elected outright.
-        
-        Parameters:
-            - votes: double representing the value of votes cast
-            - seats_vacant: int representing the number of open seats to fill
+        self.ballots = ballots
+        self.can_eliminate_no_confidence = can_eliminate_no_confidence
+        self.seats = seats
+        self.name = name
+        self.random_alphanumeric = random_alphanumeric
+            
+    def droop_quota(self, seats, votes):
+        """Calculates the Droop Quota as the vote threshold.
+
+        This threshold is the minimum number of votes a candidate must receive
+        in order to be elected outright.
+
+        Args:
+            seats_vacant: Integer value of the seats vacant.
+            votes: Float value of the value of votes cast.
         Returns: An int representing the vote quota
         """
-        return (float(votes) / (float(seats_vacant) + 1.0)) + 1.0
+        return (float(votes) / (float(seats) + 1.0)) + 1.0
     
     def compute_results(self):
-        """
-        Run the Election using single transferable vote.
-        
-        Returns: An ElectionResults object containing the election results
+        """Run the election using the single transferable vote algorithm.
+
+        Returns:
+            ElectionResults containing the election results and data.
         """
 
         election_rounds = list()
         current_round = 0
 
-        ballots_active = set(copy.copy(self.ballots))
-        ballots_exhausted = set()
+        ballots_active = copy.deepcopy(self.ballots)
+        ballots_exhausted = list()
 
         candidates_elected = set()
         candidates_eliminated = set()
@@ -364,6 +493,7 @@ class Election:
             ##########
             # Count and assign votes from ballots
             ##########
+            ballots_to_exhaust = list()
             for ballot in ballots_active:
                 # Determine preferred active candidate
                 while True:
@@ -381,23 +511,27 @@ class Election:
                 # If ballot has no active candidates, it is exhausted
                 candidate = ballot.preferred_active_candidate()
                 if candidate == None:
-                    ballots_exhausted.add(ballot)
+                    ballots_to_exhaust.append(ballot)
 
                 # If ballot has no value, it is exhausted
                 elif ballot.vote_value <= 0.0:
-                    ballots_exhausted.add(ballot)
+                    ballots_to_exhaust.append(ballot)
 
                 # Otherwise, record the ballot and cast its vote
                 else:
-                    vote_tracker.cast_vote_for_candidate(candidate, vote_value=ballot.vote_value)
+                    # Add vote to vote tracker
+                    vote_tracker.cast_vote_for_candidate(candidate, ballot.vote_value)
 
+                    # Add ballot to ballot tracker
                     if candidate not in ballots_for_candidate:
-                        ballots_for_candidate[candidate] = set()
-
-                    ballots_for_candidate[candidate].add(ballot)            
+                        ballots_for_candidate[candidate] = []
+                    ballots_for_candidate[candidate].append(ballot)
 
             # Remove exhausted ballots
-            ballots_active = ballots_active.difference(ballots_exhausted)
+            for ballot in ballots_to_exhaust:
+                ballots_active.remove(ballot)
+            ballots_exhausted.extend(ballots_to_exhaust)
+
             # End election if no candidates remain
             if len(ballots_for_candidate) == 0:
                 break
@@ -422,7 +556,7 @@ class Election:
             # Calculate threshold
             ##########
             # Threshold changes per round based on votes cast and seats vacant
-            threshold = self.droop_quota(vote_tracker.votes_cast, seats_vacant)
+            threshold = self.droop_quota(seats_vacant, vote_tracker.votes_cast)
             election_round.threshold = threshold
 
             ##########
@@ -477,11 +611,12 @@ class Election:
             # If there is still a tie for elimination, choose the candidate with the fewest votes in ballots' next rank
             # Repeat is multiple candidates remain tied with the fewest votes
             if len(candidates_to_eliminate) > 1:
-                ballots_active_copy = copy.deepcopy(ballots_active)
-                ballots_exhausted_copy = copy.deepcopy(ballots_exhausted)
-                while(len(candidates_to_eliminate) > 1 and len(ballots_active_copy) > 1):
+                ballots_active_tiebreak = copy.deepcopy(ballots_active)
+                ballots_exhausted_tiebreak = copy.deepcopy(ballots_exhausted)
+                ballots_to_exhaust_tiebreak = list()
+                while(len(candidates_to_eliminate) > 1 and len(ballots_active_tiebreak) > 1):
                     forward_vote_tracker = VoteTracker()
-                    for ballot in ballots_active_copy:
+                    for ballot in ballots_active_tiebreak:
                         # Determine preferred active candidate
                         if self.can_eliminate_no_confidence or not isinstance(ballot.preferred_active_candidate(), NoConfidence):
                             ballot.eliminate_preferred_candidate()
@@ -501,10 +636,10 @@ class Election:
                         candidate = ballot.preferred_active_candidate()
                         # If ballot is exhausted, add it to exhausted ballots
                         if candidate == None:
-                            ballots_exhausted_copy.add(ballot)
+                            ballots_to_exhaust_tiebreak.append(ballot)
                         # Remove No Confidence ballots if not eligible to be eliminated
                         elif not self.can_eliminate_no_confidence and isinstance(candidate, NoConfidence):
-                            ballots_exhausted_copy.add(ballot)
+                            ballots_to_exhaust_tiebreak.append(ballot)
 
                         # Otherwise, record the ballot and cast its vote
                         else:
@@ -512,8 +647,10 @@ class Election:
 
                     candidates_to_eliminate = forward_vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
                     # Remove exhausted ballots
-                    ballots_active_copy = ballots_active_copy.difference(ballots_exhausted_copy)
-            
+                    for ballot in ballots_to_exhaust_tiebreak:
+                        ballots_active_tiebreak.remove(ballot)
+                    ballots_exhausted_tiebreak.extend(ballots_to_exhaust)
+
             candidate_to_eliminate = None
             # If only one candidate remains, choose the only candidate from the set
             if len(candidates_to_eliminate) == 1:
@@ -530,15 +667,11 @@ class Election:
             # Eliminate candidate_to_eliminate and transfer surplus
             candidates_eliminated.add(candidate_to_eliminate)
             election_round.candidates_eliminated = [candidate_to_eliminate]
-            
+
         ##########
         # Election is over; return results
         ##########
-        results = ElectionResults(name=self.name,
-                                   seats=self.seats,
-                                   ballots=self.ballots,
-                                   random_alphanumeric=tiebreak_alphanumeric)
-        results.candidates_elected = candidates_elected
-        results.rounds = election_rounds
-
+        results = ElectionResults(self.ballots, candidates_elected,
+                                  election_rounds, tiebreak_alphanumeric,
+                                  self.seats, name=self.name)
         return results

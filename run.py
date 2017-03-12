@@ -32,7 +32,7 @@ def ballots_from_input():
 
     print_ballot_instructions()
     while True:
-        ballot_input = raw_input('\nBallot {}: '.format(ballot_number)).strip()
+        ballot_input = input('\nBallot {}: '.format(ballot_number)).strip()
 
         if ballot_input == '':
             return ballots
@@ -48,7 +48,11 @@ def ballots_from_input():
             candidate_uids = [candidate_uid.strip() for candidate_uid in ballot_input.split(',')]
             candidates = list()
             for candidate_uid in candidate_uids:
-                candidate = Candidate(candidate_uid, candidate_uid)
+                if (candidate_uid.lower() == NC_STRING.lower()
+                    or candidate_uid.lower() == NC_STRING_SHORT.lower()):
+                    candidate = NoConfidence()
+                else:
+                    candidate = Candidate(candidate_uid)
                 candidates.append(candidate)
             ballot = Ballot(candidates=candidates)
             ballots.append(ballot)

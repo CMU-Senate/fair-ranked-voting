@@ -33,32 +33,32 @@ def candidates_for_ids(candidate_ids):
     """
     candidate_for_id = {
         'NC': NoConfidence(),
-        'A': Candidate('Devin Gund', 'dgund'),
-        'B': Candidate('George Washington', 'gwashington'),
-        'C': Candidate('John Adams', 'jadams'),
-        'D': Candidate('Thomas Jefferson', 'tjefferson'),
-        'E': Candidate('James Madison', 'jmadison'),
-        'F': Candidate('James Monroe', 'jmonroe'),
-        'G': Candidate('John Quincy Adams', 'jqadams'),
-        'H': Candidate('Andrew Jackson', 'ajackson'),
-        'I': Candidate('Martin Van Buren', 'mvburen'),
-        'J': Candidate('William Harrison', 'wharrison'),
-        'K': Candidate('John Tyler', 'jtyler'),
-        'L': Candidate('James Polk', 'jpolk'),
-        'M': Candidate('Zachary Taylor', 'ztaylor'),
-        'N': Candidate('Millard Fillmore', 'mfillmore'),
-        'O': Candidate('Franklin Pierce', 'fpierce'),
-        'P': Candidate('James Buchanan', 'jbuchanan'),
-        'Q': Candidate('Abraham Lincoln', 'alincoln'),
-        'R': Candidate('Andrew Johnson', 'ajohnson'),
-        'S': Candidate('Ulysses Grant', 'ugrant'),
-        'T': Candidate('Rutherford Hayes', 'rhayes'),
-        'U': Candidate('James Garfield', 'jgarfield'),
-        'V': Candidate('Chester Arthur', 'carthur'),
-        'W': Candidate('Grover Cleveland', 'gcleveland'),
-        'X': Candidate('Benjamin Harrison', 'bharrison'),
-        'Y': Candidate('William McKinley', 'wmckinley'),
-        'Z': Candidate('Theodore Roosevelt', 'troosevelt'),
+        'A': Candidate('dgund', name='Devin Gund'),
+        'B': Candidate('gwashington', name='George Washington'),
+        'C': Candidate('jadams', name='John Adams'),
+        'D': Candidate('tjefferson', name='Thomas Jefferson'),
+        'E': Candidate('jmadison', name='James Madison'),
+        'F': Candidate('jmonroe', name='James Monroe'),
+        'G': Candidate('jqadams', name='John Quincy Adams'),
+        'H': Candidate('ajackson', name='Andrew Jackson'),
+        'I': Candidate('mvburen', name='Martin Van Buren'),
+        'J': Candidate('wharrison', name='William Harrison'),
+        'K': Candidate('jtyler', name='John Tyler'),
+        'L': Candidate('jpolk', name='James Polk'),
+        'M': Candidate('ztaylor', name='Zachary Taylor'),
+        'N': Candidate('mfillmore', name='Millard Fillmore'),
+        'O': Candidate('fpierce', name='Franklin Pierce'),
+        'P': Candidate('jbuchanan', name='James Buchanan'),
+        'Q': Candidate('alincoln', name='Abraham Lincoln'),
+        'R': Candidate('ajohnson', name='Andrew Johnson'),
+        'S': Candidate('ugrant', name='Ulysses Grant'),
+        'T': Candidate('rhayes', name='Rutherford Hayes'),
+        'U': Candidate('jgarfield', name='James Garfield'),
+        'V': Candidate('carthur', name='Chester Arthur'),
+        'W': Candidate('gcleveland', name='Grover Cleveland'),
+        'X': Candidate('bharrison', name='Benjamin Harrison'),
+        'Y': Candidate('wmckinley', name='William McKinley'),
+        'Z': Candidate('troosevelt', name='Theodore Roosevelt'),
     }
 
     candidates = []
@@ -801,11 +801,11 @@ class TestLargeElections(unittest.TestCase):
         Expected winners: Gorilla, Monkey, Tiger
         """
         # Setup
-        tarsier = Candidate('Tarsier', 'tarsier')
-        gorilla = Candidate('Gorilla', 'gorilla')
-        monkey = Candidate('Monkey', 'monkey')
-        tiger = Candidate('Tiger', 'tiger')
-        lynx = Candidate('Lynx', 'lynx')
+        tarsier = Candidate('tarsier', name='Tarsier')
+        gorilla = Candidate('gorilla', name='Gorilla')
+        monkey = Candidate('monkey', name='Monkey')
+        tiger = Candidate('tiger', name='Tiger')
+        lynx = Candidate('lynx', name='Lynx')
 
         expected_winners = set([gorilla, monkey, tiger])
         seats = 3
@@ -834,16 +834,16 @@ class TestLargeElections(unittest.TestCase):
         Expected winners: Gorilla, Silverback, Owl, Turtle, Tiger
         """
         # Setup
-        tarsier = Candidate('Tarsier', 'tarsier')
-        gorilla = Candidate('Gorilla', 'gorilla')
-        silverback = Candidate('Silverback', 'silverback')
-        owl = Candidate('Owl', 'owl')
-        turtle = Candidate('Turtle', 'turtle')
-        snake = Candidate('Snake', 'snake')
-        tiger = Candidate('Tiger', 'tiger')
-        lynx = Candidate('Lynx', 'lynx')
-        jackalope = Candidate('Jackalope', 'jackalope')
-        buffalo = Candidate('Buffalo', 'buffalo')
+        tarsier = Candidate('tarsier', name='Tarsier')
+        gorilla = Candidate('gorilla', name='Gorilla')
+        silverback = Candidate('silverback', name='Silverback')
+        owl = Candidate('owl', name='Owl')
+        turtle = Candidate('turtle', name='Turtle')
+        snake = Candidate('snake', name='Snake')
+        tiger = Candidate('tiger', name='Tiger')
+        lynx = Candidate('lynx', name='Lynx')
+        jackalope = Candidate('jackalope', name='Jackalope')
+        buffalo = Candidate('buffalo', name='Buffalo')
 
         expected_winners = set([gorilla, silverback, owl, turtle, tiger])
         seats = 5
@@ -879,11 +879,11 @@ class TestLargeElections(unittest.TestCase):
         Expected winners: Chocolate, Oranges, Strawberries
         """
         # Setup
-        chocolate = Candidate('Chocolate', 'chocolate')
-        oranges = Candidate('Oranges', 'oranges')
-        pears = Candidate('Pears', 'pears')
-        strawberries = Candidate('Strawberries', 'strawberries')
-        sweets = Candidate('Sweets', 'sweets')
+        chocolate = Candidate('chocolate', name='Chocolate')
+        oranges = Candidate('oranges', name='Oranges')
+        pears = Candidate('pears', name='Pears')
+        strawberries = Candidate('strawberries', name='Strawberries')
+        sweets = Candidate('sweets', name='Sweets')
 
         expected_winners = set([chocolate, oranges, strawberries])
         seats = 3
@@ -938,9 +938,9 @@ class TestLargeElections(unittest.TestCase):
             Result: Gore is elected
         """
         # Setup
-        bush = Candidate('George Bush', 'gbush')
-        gore = Candidate('Al Gore', 'agore')
-        nader = Candidate('Ralph Nader', 'rnader')
+        bush = Candidate('gbush', name='George Bush')
+        gore = Candidate('agore', name='Al Gore')
+        nader = Candidate('rnader', name='Ralph Nader')
         expected_winners = set([gore])
         seats = 1
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'

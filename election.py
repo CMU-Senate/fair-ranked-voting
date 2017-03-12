@@ -22,21 +22,21 @@ class Candidate:
     """Candidate with a name and unique identifier.
 
     Attributes:
-        name: String representing the name of the Candidate.
         uid: String representing the unique identifier of the Candidate. Used
             for equality, hashing, and ordering in a random tiebreak.
+        name: String representing the name of the Candidate.
     """
 
-    def __init__(self, name, uid):
+    def __init__(self, uid, name=None):
         """Initializes Candidate with name and uid.
 
         Args:
-            name: String representing the name of the Candidate.
             uid: String representing the unique identifier of the Candidate. Used
                 for equality, hashing, and ordering in a random tiebreak.
+            name: String representing the name of the Candidate.
         """
-        self.name = name
         self.uid = uid
+        self.name = name
 
     def __eq__(self, other):
         """Checks equality between two Candidates using uids.
@@ -64,7 +64,7 @@ class Candidate:
         Returns:
             String containing the printable representation of the Candidate.
         """
-        return 'Candidate({!r}, {!r})'.format(self.name, self.uid)
+        return 'Candidate({!r}, name={!r})'.format(self.uid, self.name)
 
     def __str__(self):
         """Returns a printable user representation of the Candidate.
@@ -72,7 +72,7 @@ class Candidate:
         Returns:
             String containing the printable representation of the Candidate.
         """
-        return '{} ({})'.format(self.name, self.uid)
+        return '{} ({})'.format(self.uid, self.name if self.name != None else self.uid)
 
 
 class NoConfidence(Candidate):
@@ -85,8 +85,8 @@ class NoConfidence(Candidate):
 
     def __init__(self):
         """Initializes NoConfidence."""
+        self.uid = 'NC'
         self.name = 'No Confidence'
-        self.uid = ''
 
     def __repr__(self):
         """Returns a printable system representation of NoConfidence.

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
+import random
 import string
 
 class Candidate:
@@ -417,6 +418,8 @@ class Election:
         seats: Number of vacant seats before the election.
         can_eliminate_no_confidence: Boolean indicating if No Confidence may be
             eliminated in the election.
+        can_random_tiebreak: Boolean indicating if random elimination may be
+            used for final tiebreaks. Otherwise, the election is halted.
         name: String representing the name of the election. Defaults to an empty
             string.
         random_alphanumeric: String containing the random alphanumeric used for
@@ -424,7 +427,7 @@ class Election:
     """
     
     def __init__(self, ballots, seats, can_eliminate_no_confidence=True,
-                 name='', random_alphanumeric=None):
+                 can_random_tiebreak=True, name='', random_alphanumeric=None):
         """Initializes Election with ballots, seats, and configuration data.
 
         Args:
@@ -432,12 +435,15 @@ class Election:
             seats: Number of vacant seats before the election.
             can_eliminate_no_confidence: Boolean indicating if No Confidence may
                 be eliminated in the election.
+            can_random_tiebreak: Boolean indicating if random elimination may be
+                used for final tiebreaks. Otherwise, the election is halted.
             name: String representing the name of the election.
-            random_alphanumeric: String containing the random alphanumeric used
+            random_alphanumeric: String containing the rcandom alphanumeric used
                 for final tiebreaks.
         """
         self.ballots = ballots
         self.can_eliminate_no_confidence = can_eliminate_no_confidence
+        self.can_random_tiebreak = can_random_tiebreak
         self.seats = seats
         self.name = name
         self.random_alphanumeric = random_alphanumeric
@@ -655,6 +661,8 @@ class Election:
             # If only one candidate remains, choose the only candidate from the set
             if len(candidates_to_eliminate) == 1:
                 (candidate_to_eliminate,) = candidates_to_eliminate
+            elif not self.can_random_tiebreak:
+                break
             else:
                 # Sort the candidates by uid according to the random alphanumeric
                 candidates_random_sort = sorted(candidates_to_eliminate, key=lambda candidate: [tiebreak_alphanumeric.index(c) for c in candidate.uid])

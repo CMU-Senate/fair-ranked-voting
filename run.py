@@ -16,116 +16,90 @@
 
 from election import *
 
-def print_introduction():
-	print("Carnegie Mellon Fair Ranked Voting")
-	print("Conducting election using single transferable vote")
-	print("--------------------------------------------------")
+import argparse
 
-def prompt_election_name():
-	election_name = raw_input("\nEnter a name for this election: ")
-	return election_name
+NC_STRING = "No Confidence"
+NC_STRING_SHORT = "NC"
 
-def prompt_election_seats():
-	election_seats = raw_input("How many seats should this election fill: ")
-	return int(election_seats)
+def ballots_from_input():
+    ballots = list()
+    ballot_number = 0
 
-def print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command):
-	print("\nInstructions:")
-	print("- Input the candidates on a ballot in a comma-separated-list, ordered from most preferred to least preferred.")
+    def print_ballot_instructions():
+        print('Enter candidates on the ballot in a comma-separated-list of unique identifiers, ordered from most preferred to least preferred.')
+        print('{} may also be abbreviated as {}.'.format(NC_STRING, NC_STRING_SHORT))
+        print('Press enter in an empty ballot to end input. Type undo to remove the last ballot.')
 
-	print("- A vote of No Confidence can also be abbreviated as %s." % (no_confidence_short))
-	print("- Example: Awesome Candidate, Great Candidate, Average Candidate, No Confidence")
+    print_ballot_instructions()
+    while True:
+        ballot_input = raw_input('\nBallot {}: '.format(ballot_number)).strip()
 
-	print("- Special Commands: '%s' to run election, '%s' to remove most recent ballot, '%s' to quit program, '%s' to view these instructions again" % (run_command, quit_command, undo_command, help_command))
+        if ballot_input == '':
+            return ballots
 
-def prompt_ballot_command(ballot_count):
-	ballot_command = raw_input("\nBallot %d: " % (ballot_count + 1)).strip()
-	return ballot_command
+        elif ballot_input.lower() == 'help':
+            print_ballot_instructions()
 
-def print_conclusion(winners, seats):
-	print("\n--------------------------------------------------")
-	print("The following candidates(s) have been declared winner to fill %d seat(s):" % (seats))
-	for winner in winners:
-		print(winner)
+        elif ballot_input.lower() == 'undo' and ballot_number > 0:
+            ballots.pop()
+            ballot_number -= 1
 
-def main():
-	no_confidence = Ballot.NO_CONFIDENCE
-	no_confidence_short = "NC"
+        else:
+            candidate_uids = [candidate_uid.strip() for candidate_uid in ballot_input.split(',')]
+            candidates = list()
+            for candidate_uid in candidate_uids:
+                candidate = Candidate(candidate_uid, candidate_uid)
+                candidates.append(candidate)
+            ballot = Ballot(candidates=candidates)
+            ballots.append(ballot)
+            ballot_number += 1
 
-	run_command = "run"
-	quit_command = "quit"
-	undo_command = "undo"
-	help_command = "help"
+def ballots_from_file(filename):
+    pass
 
-	election_name = None
-	election_seats = None
-	election_ballots = list()
+def main(args):
+    if args.ballots != None:
+        ballots = ballots_from_file(args.ballots)
+    else:
+        ballots = ballots_from_input()
 
-	print_introduction()
+    election = Election(
+        ballots, args.seats,
+        can_eliminate_no_confidence=not(args.disallow_nc_elimination),
+        can_random_tiebreak=not(args.disallow_random_tiebreak),
+        name=args.name, random_alphanumeric=args.alphanumeric
+    )
 
-	election_name = prompt_election_name()
+    results = election.compute_results()
 
-	election_seats = prompt_election_seats()
+    if args.verbose:
+        pass
 
-	print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command)
+    print("Winners:")
+    for candidate in results.candidates_elected:
+        print(candidate)
 
-	while True:
-		ballot_or_command = prompt_ballot_command(len(election_ballots))
-
-		# Empty input
-		if len(ballot_or_command) == 0:
-			continue
-
-		# 'run' command
-		elif ballot_or_command.lower() == run_command:
-			# Create the Election
-			election = Election(name=election_name, seats=election_seats)
-			election.is_final_tiebreak_manual = True
-			election.ballots = set(election_ballots)
-
-			# Run the election and compute winners
-			winners = election.compute_winners(verbose=True)
-
-			# Print the winners and quit the program
-			print_conclusion(winners, election_seats)
-			return 0
-
-		# 'quit' command
-		elif ballot_or_command.lower() == quit_command:
-			# Quit the program
-			return 0
-
-		# 'undo' command
-		elif ballot_or_command.lower() == undo_command:
-			# Pop the last ballot from the list of ballots
-			if len(election_ballots) > 0:
-				election_ballots.pop()
-				print("The most-recent ballot has been removed.")
-			else:
-				print("There are no ballots to remove.")
-
-		# 'help' command
-		elif ballot_or_command.lower() == help_command:
-			# Print the instructions again
-			print_ballot_instructions(no_confidence_short, run_command, quit_command, undo_command, help_command)
-
-		# Ballot input
-		else:
-			# Parse the input into a list of strings representing candidates
-			ranked_candidates = [candidate_input.strip() for candidate_input in ballot_or_command.split(',')]
-
-			# For each candidate in the list, add them to the Ballot with increasing rank
-			ballot = Ballot()
-			rank = 1
-			for candidate in ranked_candidates:
-				# Replace No Confidence abbreviations
-				if candidate == no_confidence_short:
-					candidate = no_confidence
-				ballot.set_candidate_with_rank(candidate, rank)
-				rank += 1
-
-			# Add the ballot to the list of ballots
-			election_ballots.append(ballot)
 
 if __name__ == "__main__":
-	main()
+    parser = argparse.ArgumentParser(description='Configure and run an election.')
+    required_group = parser.add_argument_group('required arguments')
+    # Number of seats
+    required_group.add_argument('-s','--seats', help='Number of seats', type=int, required=True)
+
+    # Alphanumeric string for breaking ties
+    parser.add_argument('-a','--alphanumeric', help='Alphanumeric string for breaking ties')
+    # File containing ballots
+    parser.add_argument('-b','--ballots', help='File containing ballots')
+    # Name of No Confidence in ballots
+    parser.add_argument('-c','--nc-name', help='Name of No Confidence', default='No Confidence')
+    # Disallow No Confidence from being eliminated
+    parser.add_argument('-e','--disallow-nc-elimination', help='No Confidence cannot be eliminated', action='store_true')
+    # Name of election
+    parser.add_argument('-n','--name', help='Name of election', default='')
+    # Disallow random tiebreaks, ending the election instead
+    parser.add_argument('-r','--disallow-random-tiebreak', help='Halt election instead of using random tiebreak', action='store_true')
+    # Verbose printing of election results
+    parser.add_argument('-v', '--verbose', help='Verbose printing of election results', action='store_true')
+
+    args = parser.parse_args()
+    main(args)

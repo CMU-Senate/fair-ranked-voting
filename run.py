@@ -17,9 +17,38 @@
 from election import *
 
 import argparse
+import csv
+import re
 
 NC_STRING = "No Confidence"
 NC_STRING_SHORT = "NC"
+
+def _input_string_is_no_confidence(input_string):
+    return (input_string.lower() == NC_STRING.lower
+            or input_string.lower() == NC_STRING_SHORT.lower())
+
+def _candidate_from_input(input_string):
+    if _input_string_is_no_confidence(input_string):
+        return NoConfidence()
+    else:
+        expr = '(.*?)\s*\((.*?)\)'
+        regex = re.compile(expr)
+        result = regex.match(input_string)
+        if result != None:
+            uid = result.group(1)
+            name = result.group(2)
+        else:
+            uid = input_string
+            name = None
+        return Candidate(uid, name=name)
+
+def _ballot_from_candidate_inputs(candidate_inputs):
+    candidates = list()
+    for candidate_input in candidate_inputs:
+        candidate = _candidate_from_input(candidate_input)
+        candidates.append(candidate)
+    ballot = Ballot(candidates=candidates)
+    return ballot
 
 def ballots_from_input():
     ballots = list()
@@ -45,21 +74,45 @@ def ballots_from_input():
             ballot_number -= 1
 
         else:
-            candidate_uids = [candidate_uid.strip() for candidate_uid in ballot_input.split(',')]
-            candidates = list()
-            for candidate_uid in candidate_uids:
-                if (candidate_uid.lower() == NC_STRING.lower()
-                    or candidate_uid.lower() == NC_STRING_SHORT.lower()):
-                    candidate = NoConfidence()
-                else:
-                    candidate = Candidate(candidate_uid)
-                candidates.append(candidate)
-            ballot = Ballot(candidates=candidates)
+            candidate_inputs = [candidate_input.strip() for candidate_input in ballot_input.split(',')]
+            ballot = _ballot_from_candidate_inputs(candidate_inputs)
             ballots.append(ballot)
             ballot_number += 1
 
+def ballots_from_csv(filename):
+    ballots = list()
+    with open(filename) as f:
+        sniffer = csv.Sniffer()
+        dialect = csv.Sniffer().sniff(f.read(1024))
+        f.seek(0)
+        has_header = sniffer.has_header(f.read(1024))
+        f.seek(0)
+        reader = csv.reader(f, dialect)
+        for row in reader:
+            if reader.line_num > 0 or not has_header:
+                ballot = _ballot_from_candidate_inputs(row)
+                ballots.append(ballot)
+    f.close()
+    return ballots
+
+def ballots_from_txt(filename):
+    ballots = list()
+    with open(filename) as f:
+        for line in f:
+            if len(line.strip()) > 0:
+                candidate_inputs = [candidate_input.strip() for candidate_input in line.split(',')]
+                ballot = _ballot_from_candidate_inputs(candidate_inputs)
+                ballots.append(ballot)
+    f.close()
+    return ballots
+
 def ballots_from_file(filename):
-    pass
+    if filename.lower().endswith('.csv'):
+        return ballots_from_csv(filename)
+    elif filename.lower().endswith('.txt'):
+        return ballots_from_txt(filename)
+    else:
+        raise ValueError('Invalid filetype. Accepts .csv, .txt.')
 
 def main(args):
     if args.ballots != None:
@@ -68,10 +121,12 @@ def main(args):
         ballots = ballots_from_input()
 
     election = Election(
-        ballots, args.seats,
+        ballots,
+        args.seats,
         can_eliminate_no_confidence=not(args.disallow_nc_elimination),
         can_random_tiebreak=not(args.disallow_random_tiebreak),
-        name=args.name, random_alphanumeric=args.alphanumeric
+        name=args.name,
+        random_alphanumeric=args.alphanumeric
     )
 
     results = election.compute_results()
@@ -94,10 +149,8 @@ if __name__ == "__main__":
     parser.add_argument('-a','--alphanumeric', help='Alphanumeric string for breaking ties')
     # File containing ballots
     parser.add_argument('-b','--ballots', help='File containing ballots')
-    # Name of No Confidence in ballots
-    parser.add_argument('-c','--nc-name', help='Name of No Confidence', default='No Confidence')
     # Disallow No Confidence from being eliminated
-    parser.add_argument('-e','--disallow-nc-elimination', help='No Confidence cannot be eliminated', action='store_true')
+    parser.add_argument('-c','--disallow-nc-elimination', help='No Confidence cannot be eliminated', action='store_true')
     # Name of election
     parser.add_argument('-n','--name', help='Name of election', default='')
     # Disallow random tiebreaks, ending the election instead

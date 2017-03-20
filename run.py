@@ -21,10 +21,10 @@ import csv
 import re
 
 # String representing the input for No Confidence
-NC_STRING = "No Confidence"
+NC_STRING = 'No Confidence'
 
 # String representing the abbreviated input for No Confidence
-NC_STRING_SHORT = "NC"
+NC_STRING_SHORT = 'NC'
 
 def input_string_is_no_confidence(candidate_input):
     """Checks if an input string represents No Confidence.
@@ -92,10 +92,14 @@ def ballots_from_input():
     def print_ballot_instructions():
         """"Prints ballot input instructions."""
         print('Instructions:')
-        print('Enter candidates on the ballot in a comma-separated-list of unique identifiers, ordered from most preferred to least preferred.')
-        print('Names may be optionally specified with the format \'uid (name)\'.')
-        print('{} may also be abbreviated as {}.'.format(NC_STRING, NC_STRING_SHORT))
-        print('Press enter with an empty ballot to end input. Type \'undo\' to remove the last ballot. Type \'help\' to view these instructions again.')
+        print('Enter candidates on the ballot in a comma-separated list of',
+              'unique identifiers, ordered from most to least preferred.')
+        print('Names may be optionally specified with format \'uid (name)\'.')
+        print('{} may also be abbreviated as {}.'.format(NC_STRING,
+                                                         NC_STRING_SHORT))
+        print('Press enter with an empty ballot to end input.',
+              'Type \'undo\' to remove the last ballot.',
+              'Type \'help\' to view these instructions again.')
 
     print_ballot_instructions()
     while True:
@@ -107,12 +111,14 @@ def ballots_from_input():
         elif ballot_input.lower() == 'help':
             print_ballot_instructions()
 
-        elif ballot_input.lower() == 'undo' and ballot_number > 0:
-            ballots.pop()
-            ballot_number -= 1
+        elif ballot_input.lower() == 'undo':
+            if ballot_number > 0:
+                ballots.pop()
+                ballot_number -= 1
 
         else:
-            candidate_inputs = [candidate_input.strip() for candidate_input in ballot_input.split(',')]
+            candidate_inputs = [candidate_input.strip()
+                                for candidate_input in ballot_input.split(',')]
             ballot = ballot_from_candidate_inputs(candidate_inputs)
             ballots.append(ballot)
             ballot_number += 1
@@ -154,7 +160,8 @@ def ballots_from_txt(filename):
     with open(filename) as f:
         for line in f:
             if len(line.strip()) > 0:
-                candidate_inputs = [candidate_input.strip() for candidate_input in line.split(',')]
+                candidate_inputs = [candidate_input.strip()
+                                    for candidate_input in line.split(',')]
                 ballot = ballot_from_candidate_inputs(candidate_inputs)
                 ballots.append(ballot)
     f.close()
@@ -182,29 +189,37 @@ def parse_args():
     Returns:
         argparse.Namespace containing election arguments.
     """
-    parser = argparse.ArgumentParser(description='Configure and run an election.')
+    parser = argparse.ArgumentParser(description='Configure and run elections.')
     required_group = parser.add_argument_group('required arguments')
     
     # Number of seats (required)
-    required_group.add_argument('-s','--seats', help='Number of seats', type=int, required=True)
+    required_group.add_argument('-s','--seats', help='Number of seats',
+                                type=int, required=True)
 
     # Alphanumeric string for breaking ties
-    parser.add_argument('-a','--alphanumeric', help='Alphanumeric string for breaking ties')
+    parser.add_argument('-a','--alphanumeric',
+                        help='Alphanumeric string for breaking ties')
     
     # File containing ballots
     parser.add_argument('-b','--ballots', help='File containing ballots')
     
     # Disallow No Confidence from being eliminated
-    parser.add_argument('-c','--disallow-nc-elimination', help='No Confidence cannot be eliminated', action='store_true')
+    parser.add_argument('-c','--disallow-nc-elimination',
+                        help='No Confidence cannot be eliminated',
+                        action='store_true')
     
     # Name of Election
     parser.add_argument('-n','--name', help='Name of election', default='')
     
     # Disallow random tiebreaks, ending the election instead
-    parser.add_argument('-r','--disallow-random-tiebreak', help='Halt election instead of using random tiebreak', action='store_true')
+    parser.add_argument('-r','--disallow-random-tiebreak',
+                        help='Halt election instead of using random tiebreak',
+                        action='store_true')
     
     # Verbose printing of election results
-    parser.add_argument('-v', '--verbose', help='Verbose printing of election results', action='store_true')
+    parser.add_argument('-v', '--verbose',
+                        help='Verbose printing of election results',
+                        action='store_true')
 
     args = parser.parse_args()
     return args

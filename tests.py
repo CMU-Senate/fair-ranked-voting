@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # tests.py: unit tests for election.py
 # Copyright (C) 2016 Devin Gund
 #
@@ -15,15 +16,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-
 from election import *
 import unittest
 
 def candidates_for_ids(candidate_ids):
     """Returns an ordered list of Candidates for an ordered list of ids.
 
-    This is helpful for tests where candidates on ballots can be defined as short
-    strings (i.e. 'A', 'B', 'NC') which can then be converted to proper Candidates.
+    This is helpful for tests where candidates on ballots can be defined as
+    short strings (i.e. 'A', 'B', 'NC') in the test cases, which can then be
+    converted to proper Candidates.
 
     Args:
         candidate_ids: List of strings representing candidate ids.
@@ -867,11 +868,16 @@ class TestLargeElections(unittest.TestCase):
 
         num_ballots = 10000
         ballots = (
-            ballots_for_candidates([tarsier, gorilla], int(.05 * num_ballots)) +
-            ballots_for_candidates([gorilla, tarsier, monkey], int(.28 * num_ballots)) +
-            ballots_for_candidates([monkey], int(.33 * num_ballots)) +
-            ballots_for_candidates([tiger], int(.21 * num_ballots)) +
-            ballots_for_candidates([lynx, tiger, tarsier, monkey, gorilla], int(.13 * num_ballots)))
+            ballots_for_candidates([tarsier, gorilla],
+                                   int(.05 * num_ballots)) +
+            ballots_for_candidates([gorilla, tarsier, monkey],
+                                   int(.28 * num_ballots)) +
+            ballots_for_candidates([monkey],
+                                   int(.33 * num_ballots)) +
+            ballots_for_candidates([tiger],
+                                   int(.21 * num_ballots)) +
+            ballots_for_candidates([lynx, tiger, tarsier, monkey, gorilla],
+                                   int(.13 * num_ballots)))
 
         # Test
         election = Election(seats=seats,
@@ -905,18 +911,30 @@ class TestLargeElections(unittest.TestCase):
 
         num_ballots = 10000
         ballots = (
-            ballots_for_candidates([tarsier, silverback], int(.05 * num_ballots)) +
-            ballots_for_candidates([gorilla, silverback], int(.21 * num_ballots)) +
-            ballots_for_candidates([gorilla, tarsier, silverback], int(.11 * num_ballots)) +
-            ballots_for_candidates([silverback], int(.03 * num_ballots)) +
-            ballots_for_candidates([owl, turtle], int(.33 * num_ballots)) +
-            ballots_for_candidates([turtle], int(.01 * num_ballots)) +
-            ballots_for_candidates([snake, turtle], int(.01 * num_ballots)) +
-            ballots_for_candidates([tiger], int(.16 * num_ballots)) +
-            ballots_for_candidates([lynx, tiger], int(.04 * num_ballots)) +
-            ballots_for_candidates([jackalope], int(.02 * num_ballots)) +
-            ballots_for_candidates([buffalo, jackalope], int(.02 * num_ballots)) +
-            ballots_for_candidates([buffalo, jackalope, turtle], int(.01 * num_ballots)))
+            ballots_for_candidates([tarsier, silverback],
+                                   int(.05 * num_ballots)) +
+            ballots_for_candidates([gorilla, silverback],
+                                   int(.21 * num_ballots)) +
+            ballots_for_candidates([gorilla, tarsier, silverback],
+                                   int(.11 * num_ballots)) +
+            ballots_for_candidates([silverback],
+                                   int(.03 * num_ballots)) +
+            ballots_for_candidates([owl, turtle],
+                                   int(.33 * num_ballots)) +
+            ballots_for_candidates([turtle],
+                                   int(.01 * num_ballots)) +
+            ballots_for_candidates([snake, turtle],
+                                   int(.01 * num_ballots)) +
+            ballots_for_candidates([tiger],
+                                   int(.16 * num_ballots)) +
+            ballots_for_candidates([lynx, tiger],
+                                   int(.04 * num_ballots)) +
+            ballots_for_candidates([jackalope],
+                                   int(.02 * num_ballots)) +
+            ballots_for_candidates([buffalo, jackalope],
+                                   int(.02 * num_ballots)) +
+            ballots_for_candidates([buffalo, jackalope, turtle],
+                                   int(.01 * num_ballots)))
 
         # Test
         election = Election(seats=seats,
@@ -964,7 +982,6 @@ class TestLargeElections(unittest.TestCase):
         An example of a election between two major candidates and a third-party.
         For the sake of ranking votes, this test assumes that Nader supporters
         prefer Gore to Bush by a 2:1 margin, which is not necessarily true.
-        Link: https://en.wikipedia.org/wiki/United_States_presidential_election_in_Florida,_2000
 
         Expected winners: Gore
 
@@ -1078,7 +1095,7 @@ class TestLargeElections(unittest.TestCase):
                 J: 18
             Threshold: (11+3+6+32+16+11+14+6+10+18) / (6+1) + 1 = 19.14285
             Result: D is elected with surplus 14.857
-            Each ballot is redistributed with value * () = value * 0.464
+            Ballots redistributed with value * (14.857/32) = value * 0.464
 
          Round 1
             Ballots:
@@ -1110,7 +1127,7 @@ class TestLargeElections(unittest.TestCase):
                 J: 18
             Threshold: (11+3+6+30.848+11+14+6+10+18) / (5+1) + 1 = 19.308
             Result: E is elected with surplus 11.54
-            Each ballot is redistirbuted with value * (11.54 / 30.848) = value * 0.374
+            Ballots redistributed with value * (11.54 / 30.848) = value * 0.374
 
          Round 2
             Ballots:
@@ -1140,7 +1157,8 @@ class TestLargeElections(unittest.TestCase):
                 I: 10
                 J: 18
                 NC: 1.388
-            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18+1.388) / (4+1) + 1 = 19.107
+            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18+1.388) / (4+1) + 1
+                        = 19.107
             Result: NC is eliminated
 
          Round 3
@@ -1168,7 +1186,8 @@ class TestLargeElections(unittest.TestCase):
                 H: 6
                 I: 10
                 J: 18
-            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18) / (4+1) + 1 = 18.829
+            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18) / (4+1) + 1
+                        = 18.829
             Result: B is eliminated
 
          Round 4
@@ -1217,7 +1236,7 @@ class TestLargeElections(unittest.TestCase):
                 J: 18
             Threshold: (16.776+7.388+13.992+22.992+10+18) / (4+1) + 1 = 18.829
             Result: G is elected with surplus 4.163
-            Each ballot is redistributed with value * (4.163 / 22.992) = value * 0.181
+            Ballots redistributed with value * (4.163 / 22.992) = value * 0.181
 
          Round 6
             Ballots:
@@ -1256,7 +1275,7 @@ class TestLargeElections(unittest.TestCase):
                 J: 18
             Threshold: (22.776+17.914+10+18) / (3+1) + 1 = 18.1725
             Result: A is elected with surplus 4.6035
-            Each ballot is redistributed with value * (4.6035 / 22.776) = value * 0.202
+            Ballots redistributed with value * (4.6035 / 22.776) = value * 0.202
 
          Round 8
             Ballots:
@@ -1271,10 +1290,12 @@ class TestLargeElections(unittest.TestCase):
                 I: 10
                 J: 18
             Threshold: (17.914+10+18) / (2+1) + 1 = 16.305
-            Result: F is elected with surplus 1.609 and J is elected with surplus 1.695
+            Result: F is elected with surplus 1.609 and
+                    J is elected with surplus 1.695
         """
         # Setup
-        expected_winners = set(candidates_for_ids(['D', 'E', 'G', 'A', 'F', 'J']))
+        expected_winners = set(candidates_for_ids(
+                                ['D', 'E', 'G', 'A', 'F', 'J']))
         seats = 6
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 

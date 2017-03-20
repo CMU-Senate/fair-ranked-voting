@@ -31,8 +31,8 @@ class Candidate:
         """Initializes Candidate with name and uid.
 
         Args:
-            uid: String representing the unique identifier of the Candidate. Used
-                for equality, hashing, and ordering in a random tiebreak.
+            uid: String representing the unique identifier of the Candidate.
+                Used for equality, hashing, and ordering in a random tiebreak.
             name: String representing the name of the Candidate.
         """
         self.uid = uid
@@ -72,7 +72,8 @@ class Candidate:
         Returns:
             String containing the printable representation of the Candidate.
         """
-        return '{} ({})'.format(self.uid, self.name if self.name != None else self.uid)
+        return '{} ({})'.format(self.uid, self.name
+                                if self.name != None else self.uid)
 
 
 class NoConfidence(Candidate):
@@ -216,7 +217,8 @@ class VoteTracker:
                 votes.
         """
         self.votes_cast = votes_cast
-        self._votes_for_candidate = votes_for_candidate if votes_for_candidate != None else dict()
+        self._votes_for_candidate = (votes_for_candidate
+                                     if votes_for_candidate != None else dict())
 
     def __eq__(self, other):
         """Checks equality between two VoteTrackers.
@@ -358,10 +360,13 @@ class ElectionRound:
             vote_tracker: VoteTracker for counting votes in this round.
         """
         self.threshold = threshold
-        self.candidates_elected = candidates_elected if candidates_elected != None else set()
-        self.candidates_eliminated = candidates_eliminated if candidates_eliminated != None else set()
+        self.candidates_elected = (candidates_elected
+                                   if candidates_elected != None else set())
+        self.candidates_eliminated = (candidates_eliminated
+                                    if candidates_eliminated != None else set())
         self.random_tiebreak_occurred = random_tiebreak_occurred
-        self.vote_tracker = vote_tracker if vote_tracker != None else VoteTracker()
+        self.vote_tracker = (vote_tracker
+                             if vote_tracker != None else VoteTracker())
 
     def __repr__(self):
         """Returns a printable system representation of the ElectionRound.
@@ -507,59 +512,61 @@ class Election:
             ##########
             ballots_to_exhaust = list()
             for ballot in ballots_active:
-                # Determine preferred active candidate
+                # Determine preferred active candidate.
                 while True:
-                    # If no preferred candidate, ballot is exhausted, break
-                    # If candidate has not been elected or eliminated, break
+                    # If no preferred candidate, ballot is exhausted, break.
+                    # If candidate has not been elected or eliminated, break.
                     candidate = ballot.preferred_active_candidate()
                     if (candidate == None or
                         candidate not in candidates_elected and
                         candidate not in candidates_eliminated):
                         break
                     
-                    # Otherwise, remove the candidate from the ballot
+                    # Otherwise, remove the candidate from the ballot.
                     ballot.eliminate_preferred_candidate()
 
-                # If ballot has no active candidates, it is exhausted
+                # If ballot has no active candidates, it is exhausted.
                 candidate = ballot.preferred_active_candidate()
                 if candidate == None:
                     ballots_to_exhaust.append(ballot)
 
-                # If ballot has no value, it is exhausted
+                # If ballot has no value, it is exhausted.
                 elif ballot.vote_value <= 0.0:
                     ballots_to_exhaust.append(ballot)
 
-                # Otherwise, record the ballot and cast its vote
+                # Otherwise, record the ballot and cast its vote.
                 else:
-                    # Add vote to vote tracker
-                    vote_tracker.cast_vote_for_candidate(candidate, ballot.vote_value)
+                    # Add vote to vote tracker.
+                    vote_tracker.cast_vote_for_candidate(candidate,
+                                                         ballot.vote_value)
 
-                    # Add ballot to ballot tracker
+                    # Add ballot to ballot tracker.
                     if candidate not in ballots_for_candidate:
                         ballots_for_candidate[candidate] = []
                     ballots_for_candidate[candidate].append(ballot)
 
-            # Remove exhausted ballots
+            # Remove exhausted ballots.
             for ballot in ballots_to_exhaust:
                 ballots_active.remove(ballot)
             ballots_exhausted.extend(ballots_to_exhaust)
 
-            # End election if no candidates remain
+            # End election if no candidates remain.
             if len(ballots_for_candidate) == 0:
                 break
 
             # If remaining candidates less than or equal to remaining seats
-            # elect candidates whose votes exceed that of No Confidence
+            # elect candidates whose votes exceed that of No Confidence.
             seats_vacant = self.seats - len(candidates_elected)
             if len(ballots_for_candidate) <= seats_vacant:
-                # Determine the number of votes for No Confidence
-                no_confidence_threshold = 0
+                # Determine the number of votes for No Confidence.
+                nc_vote = 0
                 for candidate in ballots_for_candidate:
                     if isinstance(candidate, NoConfidence):
-                        no_confidence_threshold = vote_tracker.votes_for_candidate(candidate)
+                        nc_vote = vote_tracker.votes_for_candidate(candidate)
+                        break
 
-                # Elect all candidates with more votes than No Confidence and end election
-                candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), no_confidence_threshold)
+                # Elect all candidates with more votes than No Confidence and end election.
+                candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), nc_vote)
                 candidates_elected.update(candidates_to_elect)
                 election_round.candidates_elected = candidates_to_elect
                 break
@@ -567,12 +574,12 @@ class Election:
             ##########
             # Calculate threshold
             ##########
-            # Threshold changes per round based on votes cast and seats vacant
+            # Threshold changes per round based on votes cast and seats vacant.
             threshold = self.droop_quota(seats_vacant, vote_tracker.votes_cast)
             election_round.threshold = threshold
 
             ##########
-            # If winners, transfer surplus, move to next round
+            # If winners, transfer surplus, move to next round.
             ##########
             candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), threshold)
             candidates_elected.update(candidates_to_elect)
@@ -585,26 +592,27 @@ class Election:
                     votes = vote_tracker.votes_for_candidate(candidate)
                     surplus = votes - threshold
 
-                    # Assign fractional value to ballots
+                    # Assign fractional value to ballots.
                     vote_multiplier = surplus / votes
                     for ballot in ballots_for_candidate[candidate]:
                         ballot.vote_value *= vote_multiplier
 
-                    # Check if elected candidate is No Confidence
+                    # Check if elected candidate is No Confidence.
                     if isinstance(candidate, NoConfidence):
                         no_confidence_elected = True
 
-                # If No Confidence was elected, end the election
+                # If No Confidence was elected, end the election.
                 if no_confidence_elected:
                     break
 
-                # Move on to the next round after transferring surplus
+                # Move on to the next round after transferring surplus.
                 continue
 
             ##########
             # Eliminate loser, transfer votes
             ##########
-            # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
+            # Find the candidate(s) (excluding No Confidence) with the fewest
+            # votes in the current round.
             candidates_eligible_to_eliminate = set()
             candidates_to_eliminate = set()
             for candidate in ballots_for_candidate.keys():
@@ -628,8 +636,9 @@ class Election:
                 tiebreak_required = (tied_combined_vote_value >=
                                      next_highest_vote_value)
 
-            # If there is still a tie for elimination, choose the candidate with the fewest votes in the previous round
-            # Repeat if multiple candidates remain tied with the fewest votes
+            # If there is still a tie for elimination, choose the candidate with
+            # the fewest votes in the previous round. Repeat if multiple
+            # candidates remain tied with the fewest votes.
             if tiebreak_required:
                 previous_round = current_round - 1
                 while(len(candidates_to_eliminate) > 1 and previous_round >= 0):
@@ -638,8 +647,9 @@ class Election:
 
                 tiebreak_required = len(candidates_to_eliminate) > 1
 
-            # If there is still a tie for elimination, choose the candidate with the fewest votes in ballots' next rank
-            # Repeat is multiple candidates remain tied with the fewest votes
+            # If there is still a tie for elimination, choose the candidate with
+            # the fewest votes in ballots' next rank. Repeat is multiple
+            # candidates remain tied with the fewest votes.
             if tiebreak_required:
                 ballots_active_tiebreak = copy.deepcopy(ballots_active)
                 ballots_exhausted_tiebreak = copy.deepcopy(ballots_exhausted)
@@ -647,31 +657,31 @@ class Election:
                 while(len(candidates_to_eliminate) > 1 and len(ballots_active_tiebreak) > 1):
                     forward_vote_tracker = VoteTracker()
                     for ballot in ballots_active_tiebreak:
-                        # Determine preferred active candidate
-                        if self.can_eliminate_no_confidence or not isinstance(ballot.preferred_active_candidate(), NoConfidence):
+                        # Determine preferred active candidate.
+                        if (self.can_eliminate_no_confidence or not isinstance(ballot.preferred_active_candidate(), NoConfidence)):
                             ballot.eliminate_preferred_candidate()
 
                         while True:
-                            # If no preferred candidate, ballot is exhausted, break
-                            # If candidate has not been elected or eliminated, break
+                            # Update ballots
                             candidate = ballot.preferred_active_candidate()
                             if (candidate == None or
                                 candidate not in candidates_elected and
                                 candidate not in candidates_eliminated):
                                 break
                             
-                            # Otherwise, remove the candidate from the ballot
+                            # Otherwise, remove the candidate from the ballot.
                             ballot.eliminate_preferred_candidate()
 
                         candidate = ballot.preferred_active_candidate()
-                        # If ballot is exhausted, add it to exhausted ballots
+                        # If ballot is exhausted, add it to exhausted ballots.
                         if candidate == None:
                             ballots_to_exhaust_tiebreak.append(ballot)
-                        # Remove No Confidence ballots if not eligible to be eliminated
+                        # Remove No Confidence ballots if not eligible to be
+                        # eliminated.
                         elif not self.can_eliminate_no_confidence and isinstance(candidate, NoConfidence):
                             ballots_to_exhaust_tiebreak.append(ballot)
 
-                        # Otherwise, record the ballot and cast its vote
+                        # Otherwise, record the ballot and cast its vote.
                         else:
                             forward_vote_tracker.cast_vote_for_candidate(candidate, vote_value=ballot.vote_value)
 
@@ -683,30 +693,33 @@ class Election:
 
                 tiebreak_required = len(candidates_to_eliminate) > 1
 
-            # If there is still a tie for elimination, choose a random candidate according to the random tiebreak alphanumeric
+            # If there is still a tie for elimination, choose a random candidate
+            # according to the random tiebreak alphanumeric.
             random_tiebreak_occurred = False
             if tiebreak_required:
                 random_tiebreak_occurred = True
 
-                # If random tiebreaks are not allowed, end the election
+                # If random tiebreaks are not allowed, end the election.
                 if not self.can_random_tiebreak:
                     break
 
-                # Sort the candidates by uid according to the random alphanumeric
+                # Sort the candidates by uid according to the random
+                # alphanumeric.
                 candidates_random_sort = sorted(candidates_to_eliminate, key=lambda candidate: [tiebreak_alphanumeric.index(c) for c in candidate.uid])
-                # Eliminate the first candidate in this random sort that is not No Confidence
+                # Eliminate the first candidate in this random sort that is not
+                # No Confidence.
                 for candidate in candidates_random_sort:
                     if not isinstance(candidate, NoConfidence):
                         candidates_to_eliminate = [candidate]
                         break
 
-            # Eliminate candidates_to_eliminate
+            # Eliminate candidates_to_eliminate.
             candidates_eliminated.update(candidates_to_eliminate)
             election_round.candidates_eliminated = candidates_to_eliminate
             election_round.random_tiebreak_occurred = random_tiebreak_occurred
 
         ##########
-        # Election is over; return results
+        # Election is over; return results.
         ##########
         results = ElectionResults(self.ballots, candidates_elected,
                                   election_rounds, tiebreak_alphanumeric,

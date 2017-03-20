@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # run.py: provides an interface to input ballots and run elections
 # Copyright (C) 2016 Devin Gund
 #
@@ -15,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from election import *
-
 import argparse
 import csv
 import re

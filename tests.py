@@ -602,14 +602,68 @@ class TestNoConfidence(unittest.TestCase):
 
 class TestTiebreaks(unittest.TestCase):
     
+    def test_bulk_elimination(self):
+        """Tests a 4 candidate election for 2 seats.
+
+        In the event of a tie to eliminate a candidate, of the tied candidates'
+        combined vote total is lass than that of the next highest candidate,
+        eliminate all of the tied candidates.
+
+        Expected winners: A, B
+
+        Round 0
+            Ballots:
+                3 * [A]
+                3 * [B]
+                1 * [C, B]
+                1 * [D, A]
+            Votes:
+                A: 3
+                B: 3
+                C: 1
+                D: 1
+            Threshold: (3+3+1+1) / (2+1) + 1 = 3.666
+            Result: C and D are eliminated
+            C and D are tied for fewest votes, but their combined vote total (2)
+            is less than the next highest candidate (3), so they may be
+            eliminated in bulk.
+
+        Round 0
+            Ballots:
+                4 * [A]
+                4 * [B]
+            Votes:
+                A: 4
+                B: 4
+            Threshold: (4+4) / (2+1) + 1 = 3.666
+            Result: A and B are elected
+        """
+        # Setup
+        expected_winners = set(candidates_for_ids(['A', 'B']))
+        seats = 2
+        tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
+
+        ballots = (
+            ballots_for_ids(['A'], 3) +
+            ballots_for_ids(['B'], 3) +
+            ballots_for_ids(['C', 'B'], 1) +
+            ballots_for_ids(['D', 'A'], 1))
+
+        # Test
+        election = Election(seats=seats,
+                            ballots=ballots,
+                            random_alphanumeric=tiebreak_alphanumeric)
+        results = election.compute_results()
+        self.assertEqual(expected_winners, results.candidates_elected)
+
     def test_backward_tiebreak(self):
-        """Tests a 3 candidate election for 2 seats.
+        """Tests a 4 candidate election for 2 seats.
 
         In the event of a tie to eliminate a candidate, eliminate the candidate
         with the fewest votes in the previous round. Repeat for all previous
         rounds if necessary.
 
-        Expected winners: A, C
+        Expected winners: A, B
 
         Round 0
             Ballots:

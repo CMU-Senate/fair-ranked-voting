@@ -599,24 +599,42 @@ class Election:
             # Eliminate loser, transfer votes
             ##########
             # Find the candidate(s) (excluding No Confidence) with the fewest votes in the current round
+            candidates_eligible_to_eliminate = set()
             candidates_to_eliminate = set()
             for candidate in ballots_for_candidate.keys():
                 if self.can_eliminate_no_confidence or not isinstance(candidate, NoConfidence):
-                    candidates_to_eliminate.add(candidate)
+                    candidates_eligible_to_eliminate.add(candidate)
 
-            candidates_to_eliminate = vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
-            assert len(candidates_to_eliminate) >= 1
+            candidates_to_eliminate = vote_tracker.candidates_with_fewest_votes(candidates_eligible_to_eliminate)
 
-            # If multiple candidates have the fewest votes in a round, choose the candidate with the fewest votes in the previous round
+            # If multiple candidates have the fewest votes in a round, and their
+            # combined vote total is less than that of the next-highest
+            # candidate, eliminate all of the tied candidates. Otherwise, a
+            # tiebreak is required to select the candidate to eliminate.
+            tiebreak_required = False
+            if len(candidates_to_eliminate) > 1:
+                tied_combined_vote_value = len(candidates_to_eliminate) * vote_tracker.votes_for_candidate(next(iter(candidates_to_eliminate)))
+                next_highest_candidates = vote_tracker.candidates_with_fewest_votes(candidates_eligible_to_eliminate.difference(candidates_to_eliminate))
+                if len(next_highest_candidates) > 0:
+                    next_highest_vote_value = vote_tracker.votes_for_candidate(next(iter(next_highest_candidates)))
+                else:
+                    next_highest_vote_value = 0
+                tiebreak_required = (tied_combined_vote_value >=
+                                     next_highest_vote_value)
+
+            # If there is still a tie for elimination, choose the candidate with the fewest votes in the previous round
             # Repeat if multiple candidates remain tied with the fewest votes
-            previous_round = current_round - 1
-            while(len(candidates_to_eliminate) > 1 and previous_round >= 0):
-                candidates_to_eliminate = election_rounds[previous_round].vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
-                previous_round -= 1
+            if tiebreak_required:
+                previous_round = current_round - 1
+                while(len(candidates_to_eliminate) > 1 and previous_round >= 0):
+                    candidates_to_eliminate = election_rounds[previous_round].vote_tracker.candidates_with_fewest_votes(candidates_to_eliminate)
+                    previous_round -= 1
+
+                tiebreak_required = len(candidates_to_eliminate) > 1
 
             # If there is still a tie for elimination, choose the candidate with the fewest votes in ballots' next rank
             # Repeat is multiple candidates remain tied with the fewest votes
-            if len(candidates_to_eliminate) > 1:
+            if tiebreak_required:
                 ballots_active_tiebreak = copy.deepcopy(ballots_active)
                 ballots_exhausted_tiebreak = copy.deepcopy(ballots_exhausted)
                 ballots_to_exhaust_tiebreak = list()
@@ -657,24 +675,25 @@ class Election:
                         ballots_active_tiebreak.remove(ballot)
                     ballots_exhausted_tiebreak.extend(ballots_to_exhaust)
 
-            candidate_to_eliminate = None
-            # If only one candidate remains, choose the only candidate from the set
-            if len(candidates_to_eliminate) == 1:
-                (candidate_to_eliminate,) = candidates_to_eliminate
-            elif not self.can_random_tiebreak:
-                break
-            else:
+                tiebreak_required = len(candidates_to_eliminate) > 1
+
+            # If there is still a tie for elimination, choose a random candidate according to the random tiebreak alphanumeric
+            if tiebreak_required:
+                # If random tiebreaks are not allowed, end the election
+                if not self.can_random_tiebreak:
+                    break
+
                 # Sort the candidates by uid according to the random alphanumeric
                 candidates_random_sort = sorted(candidates_to_eliminate, key=lambda candidate: [tiebreak_alphanumeric.index(c) for c in candidate.uid])
                 # Eliminate the first candidate in this random sort that is not No Confidence
                 for candidate in candidates_random_sort:
                     if not isinstance(candidate, NoConfidence):
-                        candidate_to_eliminate = candidate
+                        candidates_to_eliminate = [candidate]
                         break
 
-            # Eliminate candidate_to_eliminate and transfer surplus
-            candidates_eliminated.add(candidate_to_eliminate)
-            election_round.candidates_eliminated = [candidate_to_eliminate]
+            # Eliminate candidates_to_eliminate
+            candidates_eliminated.update(candidates_to_eliminate)
+            election_round.candidates_eliminated = candidates_to_eliminate
 
         ##########
         # Election is over; return results

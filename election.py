@@ -339,22 +339,28 @@ class ElectionRound:
         candidates_elected: Set of Candidates elected in this round.
         candidates_eliminated: Set of Candidates eliminated in this round.
         threshold: Float value of the vote threshold to be elected.
+        random_tiebreak_occured: Boolean indicating if a random tiebreak
+                occurred or not in this round.
         vote_tracker: VoteTracker for counting votes in this round.
     """
 
     def __init__(self, candidates_elected=None, candidates_eliminated=None,
-                 threshold=0, vote_tracker=None):
+                 threshold=0, random_tiebreak_occurred=False,
+                 vote_tracker=None):
         """Initializes ElectionRound with threshold, Candidate, and vote data.
 
         Args:
             candidates_elected: Set of Candidates elected in this round.
             candidates_eliminated: Set of Candidates eliminated in this round.
             threshold: Float value of the vote threshold to be elected.
+            random_tiebreak_occured: Boolean indicating if a random tiebreak
+                occurred or not in this round.
             vote_tracker: VoteTracker for counting votes in this round.
         """
         self.threshold = threshold
         self.candidates_elected = candidates_elected if candidates_elected != None else set()
         self.candidates_eliminated = candidates_eliminated if candidates_eliminated != None else set()
+        self.random_tiebreak_occurred = random_tiebreak_occurred
         self.vote_tracker = vote_tracker if vote_tracker != None else VoteTracker()
 
     def __repr__(self):
@@ -678,7 +684,10 @@ class Election:
                 tiebreak_required = len(candidates_to_eliminate) > 1
 
             # If there is still a tie for elimination, choose a random candidate according to the random tiebreak alphanumeric
+            random_tiebreak_occurred = False
             if tiebreak_required:
+                random_tiebreak_occurred = True
+
                 # If random tiebreaks are not allowed, end the election
                 if not self.can_random_tiebreak:
                     break
@@ -694,6 +703,7 @@ class Election:
             # Eliminate candidates_to_eliminate
             candidates_eliminated.update(candidates_to_eliminate)
             election_round.candidates_eliminated = candidates_to_eliminate
+            election_round.random_tiebreak_occurred = random_tiebreak_occurred
 
         ##########
         # Election is over; return results

@@ -94,7 +94,8 @@ def ballots_from_input():
         print('Instructions:')
         print('Enter candidates on the ballot in a comma-separated list of',
               'unique identifiers, ordered from most to least preferred.')
-        print('Names may be optionally specified with format \'uid (name)\'.')
+        print('The expected input format for a candidate is \'uid\' or',
+              'optionally \'uid (name)\'.')
         print('{} may also be abbreviated as {}.'.format(NC_STRING,
                                                          NC_STRING_SHORT))
         print('Press enter with an empty ballot to end input.',
@@ -189,7 +190,11 @@ def parse_args():
     Returns:
         argparse.Namespace containing election arguments.
     """
-    parser = argparse.ArgumentParser(description='Configure and run elections.')
+    description = ('Configure and run an election. Ballots ranking candidates '
+                   'may be imported from a CSV or TXT file, or manual input if '
+                   'no file is specified. The expected input format for a '
+                   'candidate is \'uid\' or optionally \'uid (name)\'.')
+    parser = argparse.ArgumentParser(description=description)
     required_group = parser.add_argument_group('required arguments')
     
     # Number of seats (required)

@@ -252,11 +252,10 @@ def process_args(args):
     results = election.compute_results()
 
     if args.verbose:
-        pass
-
-    print('Winners:')
-    for candidate in results.candidates_elected:
-        print(candidate)
+        print(results.description())
+    else:
+        for candidate in results.candidates_elected:
+            print(candidate)
 
 
 if __name__ == '__main__':

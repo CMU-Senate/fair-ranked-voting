@@ -146,19 +146,22 @@ class Ballot:
         """
         return 'Ballot(vote_value={!r}, candidates={!r}, starting_rank={!r})'.format(self.vote_value, self._candidates, self._preferred_active_rank)
 
-    def __str__(self):
-        """Returns a printable user representation of the Ballot.
+    def description(self):
+        """Returns a printable long-form user representation of the Ballot.
 
         Returns:
             String containing the printable representation of the Ballot.
         """
-        ballot_string = 'Ballot (worth {:.3f}) with remaining candidates:'.format(self.vote_value)
-        for rank in range(self._preferred_active_rank, len(self._candidates)):
-            ballot_string += ' {}'.format(self.candidate_for_rank(rank))
-            if rank < len(self._candidates) - 1:
-                ballot_string += ','
-
-        return ballot_string
+        description = 'Ballot worth {:.3f}:'.format(self.vote_value)
+        for rank in range(len(self._candidates)):
+            rank_symbol = ' '
+            if rank < self._preferred_active_rank:
+                rank_symbol = 'X'
+            if rank == self._preferred_active_rank:
+                rank_symbol = '>'
+            description += '\n{} {}'.format(rank_symbol,
+                                                 self.candidate_for_rank(rank))
+        return description
 
     def candidate_for_rank(self, rank):
         """Returns the Candidate on the Ballot for the given rank.
@@ -241,16 +244,15 @@ class VoteTracker:
         """
         return 'VoteTracker(votes_for_candidate={!r}, votes_cast={!r})'.format(self._votes_for_candidate, self.votes_cast)
 
-    def __str__(self):
-        """Returns a printable user representation of the VoteTracker.
+    def decription(self):
+        """Returns a printable long-form user representation of the VoteTracker.
 
         Returns:
             String containing the printable representation of the VoteTracker.
         """
-        vote_string = ''
+        description = 'VoteTracker for {} votes:'.format(self.votes_cast)
         for candidate in sorted(self._votes_for_candidate, key=self._votes_for_candidate.get, reverse=True):
-            vote_string += '\n%s: %d' % (candidate, self._votes_for_candidate[candidate])
-        description = '<VoteTracker %s%s>' % (id(self), vote_string)
+            description += '\n{}: {}'.format(candidate, self._votes_for_candidate[candidate])
         return description
 
     def cast_vote_for_candidate(self, candidate, vote_value):
@@ -374,7 +376,31 @@ class ElectionRound:
         Returns:
             String containing the printable representation of the ElectionRound.
         """
-        return 'ElectionRound(threshold={!r}, candidates_elected={!r}, candidates_eliminated={!r}, vote_tracker={!r})'.format(self.threshold, self.candidates_elected, self.candidates_eliminated, self.vote_tracker)
+        return 'ElectionRound(threshold={!r}, candidates_elected={!r}, candidates_eliminated={!r}, random_tiebreak_occurred={}, vote_tracker={!r})'.format(self.threshold, self.candidates_elected, self.candidates_eliminated, self.random_tiebreak_occurred, self.vote_tracker)
+
+    def description(self):
+        """Returns a printable long-form user representation of the
+            ElectionRound.
+
+        Returns:
+            String containing the printable representation of the ElectionRound.
+        """
+        description = 'ElectionRound with threshold {}:\n'.format(self.threshold)
+        description += self.vote_tracker.decription()
+        result_summary = ''
+        if len(self.candidates_elected) > 0:
+            summary_elected = '\nCandidates elected in this round:'
+            for candidate in self.candidates_elected:
+                summary_elected += ' {},'.format(candidate)
+            description += summary_elected[:-1]
+        if len(self.candidates_eliminated) > 0:
+            summary_eliminated = '\nCandidates eliminated in this round:'
+            for candidate in self.candidates_eliminated:
+                summary_eliminated += ' {},'.format(candidate)
+            description += summary_eliminated[:-1]
+        if self.random_tiebreak_occurred:
+            description += '\nA random tiebreak occurred in this round'
+        return description
 
 
 class ElectionResults:
@@ -420,6 +446,27 @@ class ElectionResults:
         """
         return 'ElectionResults(name={!r}, seats={!r}, ballots={!r}, random_alphanumeric={!r}, candidates_elected={!r}, election_rounds={!r})'.format(self.name, self.seats, self.ballots, self.random_alphanumeric, self.candidates_elected, self.election_rounds)
 
+    def description(self):
+        """Returns a printable long-form user representation of the
+            ElectionResults.
+
+        Returns:
+            String containing the printable representation of the
+                ElectionResults.
+        """
+        description = 'Results for election {}:\n'.format(self.name)
+        if len(self.candidates_elected) > 0:
+            summary_elected = 'Elected:'
+            for candidate in self.candidates_elected:
+                summary_elected += ' {},'.format(candidate)
+            description += summary_elected[:-1]
+
+        for round_index in range(len(self.election_rounds)):
+            round_description = self.election_rounds[round_index].description()
+            summary_round = '\nRound {}:\n{}'.format(round_index,
+                                                    round_description)
+            description += summary_round
+        return description
 
 class Election:
     """Election configuration and computation.

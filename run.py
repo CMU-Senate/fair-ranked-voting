@@ -36,7 +36,7 @@ def input_string_is_no_confidence(candidate_input):
     Returns:
         Boolean indicating if the input string represents No Confidence or not.
     """
-    return (candidate_input.lower() == NC_STRING.lower
+    return (candidate_input.lower() == NC_STRING.lower()
             or candidate_input.lower() == NC_STRING_SHORT.lower())
 
 def candidate_from_input(candidate_input):

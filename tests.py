@@ -1094,8 +1094,8 @@ class TestLargeElections(unittest.TestCase):
                 I: 10
                 J: 18
             Threshold: (11+3+6+32+16+11+14+6+10+18) / (6+1) + 1 = 19.14285
-            Result: D is elected with surplus 14.857
-            Ballots redistributed with value * (14.857/32) = value * 0.464
+            Result: D is elected with surplus 12.857
+            Ballots redistributed with value * (12.857/32) = value * 0.401
 
          Round 1
             Ballots:
@@ -1103,12 +1103,12 @@ class TestLargeElections(unittest.TestCase):
                 12 * [J]
                 11 * [F, G]
                 11 * [A, B, C]
-                 8 * [E, A] (worth 0.464)
-                 8 * [E, A, B] (worth 0.464)
-                 8 * [E, C, F] (worth 0.464)
+                 8 * [E, A] (worth 0.401)
+                 8 * [E, A, B] (worth 0.401)
+                 8 * [E, C, F] (worth 0.401)
                  8 * [E, F, G, H]
                  8 * [E, G]
-                 8 * [E, NC] (worth 0.464)
+                 8 * [E, NC] (worth 0.401)
                  7 * [I, A, B, C]
                  6 * [H, G]
                  6 * [C, B, A]
@@ -1119,15 +1119,15 @@ class TestLargeElections(unittest.TestCase):
                 A: 11
                 B: 3
                 C: 6
-                E: 30.848
+                E: 28.832
                 F: 11
                 G: 14
                 H: 6
                 I: 10
                 J: 18
-            Threshold: (11+3+6+30.848+11+14+6+10+18) / (5+1) + 1 = 19.308
-            Result: E is elected with surplus 11.54
-            Ballots redistributed with value * (11.54 / 30.848) = value * 0.374
+            Threshold: (11+3+6+28.832+11+14+6+10+18) / (5+1) + 1 = 18.972
+            Result: E is elected with surplus 10.56
+            Ballots redistributed with value * (10.56 / 28.832) = value * 0.366
 
          Round 2
             Ballots:
@@ -1135,12 +1135,12 @@ class TestLargeElections(unittest.TestCase):
                 12 * [J]
                 11 * [F, G]
                 11 * [A, B, C]
-                 8 * [A] (worth 0.1735)
-                 8 * [A, B] (worth 0.1735)
-                 8 * [C, F] (worth 0.1735)
-                 8 * [F, G, H] (with 0.374)
-                 8 * [G] (worth 0.374)
-                 8 * [NC] (worth 0.1735)
+                 8 * [A] (worth 0.1467)
+                 8 * [A, B] (worth 0.1467)
+                 8 * [C, F] (worth 0.1467)
+                 8 * [F, G, H] (with 0.366)
+                 8 * [G] (worth 0.366)
+                 8 * [NC] (worth 0.1467)
                  7 * [I, A, B, C]
                  6 * [H, G]
                  6 * [C, B, A]
@@ -1148,17 +1148,17 @@ class TestLargeElections(unittest.TestCase):
                  3 * [B, A, C]
                  3 * [I, A, C, B]
             Votes:
-                A: 13.776
+                A: 13.347
                 B: 3
-                C: 7.388
-                F: 13.992
-                G: 16.992
+                C: 7.174
+                F: 13.928
+                G: 16.928
                 H: 6
                 I: 10
                 J: 18
-                NC: 1.388
-            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18+1.388) / (4+1) + 1
-                        = 19.107
+                NC: 1.174
+            Threshold: (13.347+3+7.174+13.928+16.928+6+10+18+1.174) / (4+1) + 1
+                        = 18.91
             Result: NC is eliminated
 
          Round 3
@@ -1167,27 +1167,27 @@ class TestLargeElections(unittest.TestCase):
                 18 * [J]
                 11 * [F, G]
                 11 * [A, B, C]
-                 8 * [A] (worth 0.1735)
-                 8 * [A, B] (worth 0.1735)
-                 8 * [C, F] (worth 0.1735)
-                 8 * [F, G, H] (with 0.374)
-                 8 * [G] (worth 0.374)
+                 8 * [A] (worth 0.1467)
+                 8 * [A, B] (worth 0.1467)
+                 8 * [C, F] (worth 0.1467)
+                 8 * [F, G, H] (with 0.366)
+                 8 * [G] (worth 0.366)
                  7 * [I, A, B, C]
                  6 * [H, G]
                  6 * [C, B, A]
                  3 * [B, A, C]
                  3 * [I, A, C, B]
             Votes:
-                A: 13.776
+                A: 13.347
                 B: 3
-                C: 7.388
-                F: 13.992
-                G: 16.992
+                C: 7.174
+                F: 13.928
+                G: 16.928
                 H: 6
                 I: 10
                 J: 18
-            Threshold: (13.776+3+7.388+13.992+16.992+6+10+18) / (4+1) + 1
-                        = 18.829
+            Threshold: (13.347+3+7.174+13.928+16.928+6+10+18) / (4+1) + 1
+                        = 18.675
             Result: B is eliminated
 
          Round 4
@@ -1196,22 +1196,22 @@ class TestLargeElections(unittest.TestCase):
                 18 * [J]
                 11 * [F, G]
                 14 * [A, C]
-                16 * [A] (worth 0.1735)
-                 8 * [C, F] (worth 0.1735)
-                 8 * [F, G, H] (with 0.374)
-                 8 * [G] (worth 0.374)
+                16 * [A] (worth 0.1467)
+                 8 * [C, F] (worth 0.1467)
+                 8 * [F, G, H] (with 0.366)
+                 8 * [G] (worth 0.366)
                 10 * [I, A, C]
                  6 * [H, G]
                  6 * [C, A]
             Votes:
-                A: 16.776
-                C: 7.388
-                F: 13.992
-                G: 16.992
+                A: 16.347
+                C: 7.174
+                F: 13.928
+                G: 16.928
                 H: 6
                 I: 10
                 J: 18
-            Threshold: (16.776+7.388+13.992+16.992+6+10+18) / (4+1) + 1 = 18.829
+            Threshold: (16.347+7.174+13.928+16.928+6+10+18) / (4+1) + 1 = 18.675
             Result: H is eliminated
 
          Round 5
@@ -1220,78 +1220,79 @@ class TestLargeElections(unittest.TestCase):
                 18 * [J]
                 11 * [F, G]
                 14 * [A, C]
-                16 * [A] (worth 0.1735)
-                 8 * [C, F] (worth 0.1735)
-                 8 * [F, G] (with 0.374)
-                 8 * [G] (worth 0.374)
+                16 * [A] (worth 0.1467)
+                 8 * [C, F] (worth 0.1467)
+                 8 * [F, G] (with 0.366)
+                 8 * [G] (worth 0.366)
                 10 * [I, A, C]
                  6 * [G]
                  6 * [C, A]
             Votes:
-                A: 16.776
-                C: 7.388
-                F: 13.992
-                G: 22.992
+                A: 16.347
+                C: 7.174
+                F: 13.928
+                G: 22.928
+                H: 6
                 I: 10
                 J: 18
-            Threshold: (16.776+7.388+13.992+22.992+10+18) / (4+1) + 1 = 18.829
-            Result: G is elected with surplus 4.163
-            Ballots redistributed with value * (4.163 / 22.992) = value * 0.181
+            Threshold: (16.347+7.174+13.928+22.928+6+10+18) / (4+1) + 1 = 19.875
+            Result: G is elected with surplus 3.053
+            Ballots redistributed with value * (3.053 / 19.875) = value * 0.1536
 
          Round 6
             Ballots:
-                14 * [F] (worth 0.181)
+                14 * [F] (worth 0.1536)
                 18 * [J]
                 11 * [F]
                 14 * [A, C]
-                16 * [A] (worth 0.1735)
-                 8 * [C, F] (worth 0.1735)
-                 8 * [F] (with 0.374)
+                16 * [A] (worth 0.1467)
+                 8 * [C, F] (worth 0.1467)
+                 8 * [F] (with 0.366)
                 10 * [I, A, C]
                  6 * [C, A]
             Votes:
-                A: 16.776
-                C: 7.388
-                F: 16.526
+                A: 16.347
+                C: 7.174
+                F: 16.078
                 I: 10
                 J: 18
-            Threshold: (16.776+7.388+16.526+10+18) / (3+1) + 1 = 18.1725
+            Threshold: (16.347+7.174+16.078+10+18) / (3+1) + 1 = 17.9
             Result: C is eliminated
 
          Round 7
             Ballots:
-                14 * [F] (worth 0.181)
+                14 * [F] (worth 0.1536)
                 18 * [J]
                 11 * [F]
                 20 * [A]
-                16 * [A] (worth 0.1735)
-                 8 * [F] (worth 0.1735)
-                 8 * [F] (with 0.374)
+                16 * [A] (worth 0.1467)
+                 8 * [F] (worth 0.1467)
+                 8 * [F] (with 0.366)
                 10 * [I, A]
             Votes:
-                A: 22.776
-                F: 17.914
+                A: 22.347
+                F: 17.252
                 I: 10
                 J: 18
-            Threshold: (22.776+17.914+10+18) / (3+1) + 1 = 18.1725
-            Result: A is elected with surplus 4.6035
-            Ballots redistributed with value * (4.6035 / 22.776) = value * 0.202
+            Threshold: (22.347+17.252+10+18) / (3+1) + 1 = 17.9
+            Result: A is elected with surplus 4.447
+            Ballots redistributed with value * (4.447 / 22.347) = value * 0.199
 
          Round 8
             Ballots:
-                14 * [F] (worth 0.181)
+                14 * [F] (worth 0.1536)
                 18 * [J]
                 11 * [F]
-                 8 * [F] (worth 0.1735)
-                 8 * [F] (with 0.374)
+                 8 * [F] (worth 0.1467)
+                 8 * [F] (with 0.366)
                 10 * [I]
             Votes:
-                F: 17.914
+                F: 17.252
                 I: 10
                 J: 18
-            Threshold: (17.914+10+18) / (2+1) + 1 = 16.305
-            Result: F is elected with surplus 1.609 and
-                    J is elected with surplus 1.695
+            Threshold: (17.252+10+18) / (2+1) + 1 = 16.084
+            Result: F is elected with surplus 1.168 and
+                    J is elected with surplus 1.916
         """
         # Setup
         expected_winners = set(candidates_for_ids(

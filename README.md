@@ -28,6 +28,19 @@ required arguments:
   -s SEATS, --seats SEATS
                         Number of seats
 ```
+
+### Example: CMU Student Senate Election 2017
+Twelve seat election with a randomly-sorted alphanumeric for final tiebreaks.
+```
+python run.py -v -n 'CMU College of Engineering' -s 12 -a 'vrb4pes1t0xnm7jdf2k8cgzqloh9wyia5u6' -b ballots.csv
+```
+
+### Example: CMU Student Body President Election 2017
+One seat election with No Confidence unable to be eliminated and halts instead of random final tiebreak.
+```
+python run.py -v -c -r -n 'CMU Student Body President' -s 1 -b ballots.csv
+```
+
 ## Testing
 
 The included unit tests in [tests.py](tests.py) can be run with:

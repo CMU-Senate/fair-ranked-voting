@@ -32,7 +32,7 @@ required arguments:
 ### Example: CMU Student Senate Election 2017
 Twelve seat election with a randomly-sorted alphanumeric for final tiebreaks.
 ```
-python run.py -v -n 'CMU College of Engineering' -s 12 -a 'vrb4pes1t0xnm7jdf2k8cgzqloh9wyia5u6' -b ballots.csv
+python run.py -v -n 'CMU College of Engineering' -s 12 -a 'vrb4pes1t0xnm7jdf2k8cgzqloh9wyia5u63' -b ballots.csv
 ```
 
 ### Example: CMU Student Body President Election 2017

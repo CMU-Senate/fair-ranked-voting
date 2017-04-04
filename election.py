@@ -700,9 +700,9 @@ class Election:
             if tiebreak_required:
                 ballots_active_tiebreak = copy.deepcopy(ballots_active)
                 ballots_exhausted_tiebreak = copy.deepcopy(ballots_exhausted)
-                ballots_to_exhaust_tiebreak = list()
                 while(len(candidates_to_eliminate) > 1 and len(ballots_active_tiebreak) > 1):
                     forward_vote_tracker = VoteTracker()
+                    ballots_to_exhaust_tiebreak = list()
                     for ballot in ballots_active_tiebreak:
                         # Determine preferred active candidate.
                         if (self.can_eliminate_no_confidence or not isinstance(ballot.preferred_active_candidate(), NoConfidence)):

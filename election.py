@@ -612,16 +612,16 @@ class Election:
             ballots_exhausted.extend(ballots_to_exhaust)
 
             # End election if no candidates remain.
-            if len(ballots_for_candidate) == 0:
+            if len(vote_tracker.candidates()) == 0:
                 break
 
             # If remaining candidates less than or equal to remaining seats
             # elect candidates whose votes exceed that of No Confidence.
             seats_vacant = self.seats - len(candidates_elected)
-            if len(ballots_for_candidate) <= seats_vacant:
+            if len(vote_tracker.candidates()) <= seats_vacant:
                 # Determine the number of votes for No Confidence.
                 nc_vote = 0
-                for candidate in ballots_for_candidate:
+                for candidate in vote_tracker.candidates():
                     if isinstance(candidate, NoConfidence):
                         nc_vote = vote_tracker.votes_for_candidate(candidate)
                         break

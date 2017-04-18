@@ -105,8 +105,8 @@ class Ballot:
     has not been eliminated.
 
     Attributes:
+        candidates: List of Candidates ordered by preferred rank.
         vote_value: Value of the Ballot's vote. Defaults to 1.0.
-        _candidates: List of Candidates ordered by preferred rank.
         _preferred_active_rank: Integer rank of the preferred active candidate.
     """
 
@@ -120,8 +120,8 @@ class Ballot:
             starting_rank: Integer rank of the initial preferred candidate.
                 Defaults to 0.
         """
+        self.candidates = candidates if candidates != None else list()
         self.vote_value = vote_value
-        self._candidates = candidates if candidates != None else list()
         self._preferred_active_rank = starting_rank
 
     def __eq__(self, other):
@@ -134,9 +134,9 @@ class Ballot:
             Boolean indicating if the Ballots are equal or not.
         """
         if isinstance(other, Ballot):
-            return (self.vote_value == other.vote_value
-                and self._preferred_active_rank == other._preferred_active_rank
-                and self._candidates == other._candidates)
+            return (self.candidates == other.candidates
+                and self.vote_value == other.vote_value
+                and self._preferred_active_rank == other._preferred_active_rank)
 
     def __repr__(self):
         """Returns a printable system representation of the Ballot.
@@ -144,7 +144,7 @@ class Ballot:
         Returns:
             String containing the printable representation of the Ballot.
         """
-        return 'Ballot(vote_value={!r}, candidates={!r}, starting_rank={!r})'.format(self.vote_value, self._candidates, self._preferred_active_rank)
+        return 'Ballot(candidates={!r}, vote_value={!r}, starting_rank={!r})'.format(self.candidates, self.vote_value, self._preferred_active_rank)
 
     def description(self):
         """Returns a printable long-form user representation of the Ballot.
@@ -153,7 +153,7 @@ class Ballot:
             String containing the printable representation of the Ballot.
         """
         description = 'Ballot worth {:.3f}:'.format(self.vote_value)
-        for rank in range(len(self._candidates)):
+        for rank in range(len(self.candidates)):
             rank_symbol = ' '
             if rank < self._preferred_active_rank:
                 rank_symbol = 'X'
@@ -172,8 +172,8 @@ class Ballot:
         Returns:
             Candidate on the Ballot at that rank, or None.
         """
-        if (0 <= rank < len(self._candidates)):
-            return self._candidates[rank]
+        if (0 <= rank < len(self.candidates)):
+            return self.candidates[rank]
         else:
             return None
 
@@ -199,7 +199,7 @@ class Ballot:
         Args:
             candidates: List of Candidates ordered by preferred rank.
         """
-        self._candidates = candidates
+        self.candidates = candidates
         self._preferred_active_rank = 0
 
 

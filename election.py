@@ -267,8 +267,8 @@ class VoteTracker:
             print('VoteTracker Error: Cannot cast vote for candidate None')
             return
 
-        if vote_value <= 0.0:
-            print('VoteTracker Error: Cannot cast non-positive vote')
+        if vote_value < 0.0:
+            print('VoteTracker Error: Cannot cast negative vote')
             return
 
         # Add the vote_value to the total votes_cast
@@ -276,7 +276,7 @@ class VoteTracker:
 
         # Add the candidate to _votes_for_candidate if missing
         if candidate not in self._votes_for_candidate:
-            self._votes_for_candidate[candidate] = 0
+            self._votes_for_candidate[candidate] = 0.0
 
         # Add vote_value to _votes_for_candidate
         self._votes_for_candidate[candidate] += vote_value
@@ -290,7 +290,15 @@ class VoteTracker:
         Returns:
             Float value of the votes for the Candidate.
         """
-        return self._votes_for_candidate.get(candidate, 0)
+        return self._votes_for_candidate.get(candidate, 0.0)
+
+    def candidates(self):
+        """Returns the Candidate(s) being tracked.
+
+        Returns:
+            Set of candidates being tracked.
+        """
+        return set(self._votes_for_candidate.keys())
 
     def candidates_reaching_threshold(self, candidates, threshold):
         """Returns the Candidate(s) with vote values meeting the threshold.
@@ -572,6 +580,12 @@ class Election:
                     # Otherwise, remove the candidate from the ballot.
                     ballot.eliminate_preferred_candidate()
 
+                # Ensure that vote tracker contains every active candidate
+                for candidate in ballot.candidates:
+                    if (candidate not in candidates_elected and
+                        candidate not in candidates_eliminated):
+                        vote_tracker.cast_vote_for_candidate(candidate, 0.0)
+
                 # If ballot has no active candidates, it is exhausted.
                 candidate = ballot.preferred_active_candidate()
                 if candidate == None:
@@ -613,7 +627,7 @@ class Election:
                         break
 
                 # Elect all candidates with more votes than No Confidence and end election.
-                candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), nc_vote)
+                candidates_to_elect = vote_tracker.candidates_reaching_threshold(vote_tracker.candidates(), nc_vote)
                 candidates_elected.update(candidates_to_elect)
                 election_round.candidates_elected = candidates_to_elect
                 break
@@ -628,7 +642,7 @@ class Election:
             ##########
             # If winners, transfer surplus, move to next round.
             ##########
-            candidates_to_elect = vote_tracker.candidates_reaching_threshold(ballots_for_candidate.keys(), threshold)
+            candidates_to_elect = vote_tracker.candidates_reaching_threshold(vote_tracker.candidates(), threshold)
             candidates_elected.update(candidates_to_elect)
             election_round.candidates_elected = candidates_to_elect
 
@@ -662,7 +676,7 @@ class Election:
             # votes in the current round.
             candidates_eligible_to_eliminate = set()
             candidates_to_eliminate = set()
-            for candidate in ballots_for_candidate.keys():
+            for candidate in vote_tracker.candidates():
                 if self.can_eliminate_no_confidence or not isinstance(candidate, NoConfidence):
                     candidates_eligible_to_eliminate.add(candidate)
 
@@ -718,6 +732,12 @@ class Election:
                             
                             # Otherwise, remove the candidate from the ballot.
                             ballot.eliminate_preferred_candidate()
+
+                        # Ensure that vote tracker contains every active candidate
+                        for candidate in ballot.candidates:
+                            if (candidate not in candidates_elected and
+                                candidate not in candidates_eliminated):
+                                forward_vote_tracker.cast_vote_for_candidate(candidate, 0.0)
 
                         candidate = ballot.preferred_active_candidate()
                         # If ballot is exhausted, add it to exhausted ballots.

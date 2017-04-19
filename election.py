@@ -1,5 +1,6 @@
-# election.py: computes election results using single transferable vote
-# Copyright (C) 2016 Devin Gund
+# election.py: Computes election results using single transferable vote.
+# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
+# Created by Devin Gund.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

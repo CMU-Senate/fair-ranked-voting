@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-# run.py: provides an interface to input ballots and run elections
-# Copyright (C) 2016 Devin Gund
+# run.py: Provides an interface to input ballots and run elections.
+# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
+# Created by Devin Gund.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

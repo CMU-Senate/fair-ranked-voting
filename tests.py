@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-# tests.py: unit tests for election.py
-# Copyright (C) 2016 Devin Gund
+# tests.py: Unit tests for election.py.
+# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
+# Created by Devin Gund.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -49,17 +49,17 @@ python -m unittest -v tests
 ```
 ## Frequently Asked Questions
 
-### Why did you make this?
+### Why was this created?
 
-As a senator in the [Carnegie Mellon Student Senate](https://cmusenate.org), I was involved in many initiatives aimed at improving the student experience across the university and empowering change within student government. I care deeply about democracy and fairness in electoral systems, and I wanted to apply this to our campus. With no free and open-source STV program that was reliably-maintained and fit our needs, the best solution was to create our own. I developed this election software, and together with many other dedicated students, we converted our voting system to STV.
+Senators in the [Carnegie Mellon Student Senate](https://cmusenate.org) are involved in many initiatives aimed at improving the student experience across the university and empowering change within student government. We care deeply about democracy and fairness in electoral systems, and we wanted to apply this to our campus. With no free and open-source STV program that was reliably-maintained and fit our needs, the best solution was to create our own. [Devin Gund](https://github.com/dgund) developed this election software with the help of [Sushain Cherivirala](https://github.com/sushain97), and together with many other dedicated students we converted our voting system to STV.
 
 ### Can I use this to run elections?
 
-Yes! I have released this project as free and open-source software under the GPLv3 license. With the code and example bylaws, you can implement an STV system and bring fair ranked voting to your organization.
+Yes! This project is free and open-source software under the GPLv3 license. With the code and example bylaws, you can implement an STV system and bring fair ranked voting to your organization.
 
 ### Why did you choose STV?
 
-The decision to investigate using [instant-runoff voting](https://en.wikipedia.org/wiki/Instant-runoff_voting) (IRV) for single-seat executive positions was made by the previous student body executive branch. When I joined the Senate, I worked to move forward with these reforms and apply them to all elections. The simplest choice was to use STV, as it serves as an extension of IRV for multi-seat elections.
+The decision to investigate using [instant-runoff voting](https://en.wikipedia.org/wiki/Instant-runoff_voting) (IRV) for single-seat executive positions was made by a previous student body executive branch. When we joined the Senate, we worked to move forward with these reforms and apply them to all elections. The simplest choice was to use STV, as it serves as an extension of IRV for multi-seat elections.
 
 STV allows voters to rank their preferred candidates and have their votes transfer as candidates are eliminated or elected. This leads to approximately [proportional representation](https://en.wikipedia.org/wiki/Proportional_representation) and avoids the [spoiler effect](https://en.wikipedia.org/wiki/Spoiler_effect) of splitting votes between similar candidates. However, STV has its issues, and [no voting system is perfect](https://en.wikipedia.org/wiki/Arrow%27s_impossibility_theorem).
 

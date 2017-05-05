@@ -76,8 +76,11 @@ def ballot_from_candidate_inputs(candidate_inputs):
     """
     candidates = list()
     for candidate_input in candidate_inputs:
-        candidate = candidate_from_input(candidate_input)
-        candidates.append(candidate)
+        if not candidate_input:
+            break
+        else:
+            candidate = candidate_from_input(candidate_input)
+            candidates.append(candidate)
     ballot = Ballot(candidates=candidates)
     return ballot
 

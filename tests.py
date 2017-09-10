@@ -17,8 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-from election import *
 import unittest
+
+from election import Ballot, Candidate, Election, NoConfidence
+
 
 def candidates_for_ids(candidate_ids):
     """Returns an ordered list of Candidates for an ordered list of ids.
@@ -68,6 +70,7 @@ def candidates_for_ids(candidate_ids):
         candidates.append(candidate_for_id[candidate_id])
     return candidates
 
+
 def ballots_for_candidates(candidates, count):
     """Returns a list of Ballots for the given Candidates and count.
 
@@ -85,6 +88,7 @@ def ballots_for_candidates(candidates, count):
         ballots.append(ballot)
     return ballots
 
+
 def ballots_for_ids(candidate_ids, count):
     """Returns a list of Ballots for the given ids and count.
 
@@ -96,6 +100,7 @@ def ballots_for_ids(candidate_ids, count):
         List of Ballots for the given ids, with the given count.
     """
     return ballots_for_candidates(candidates_for_ids(candidate_ids), count)
+
 
 class TestSmallElections(unittest.TestCase):
 
@@ -362,6 +367,7 @@ class TestSmallElections(unittest.TestCase):
         results = election.compute_results()
         self.assertEqual(expected_winners, results.candidates_elected)
 
+
 class TestNoConfidence(unittest.TestCase):
 
     def test_nc_halt_early(self):
@@ -408,7 +414,7 @@ class TestNoConfidence(unittest.TestCase):
             Result: NC is elected
         """
         # Setup
-        expected_winners = set(candidates_for_ids(['B','NC']))
+        expected_winners = set(candidates_for_ids(['B', 'NC']))
         seats = 3
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
@@ -449,7 +455,7 @@ class TestNoConfidence(unittest.TestCase):
             votes fall below that of No Confidence, so B is not elected.
         """
         # Setup
-        expected_winners = set(candidates_for_ids(['A','NC']))
+        expected_winners = set(candidates_for_ids(['A', 'NC']))
         seats = 3
         tiebreak_alphanumeric = 'abcdefghijklmnopqrstuvwxyz'
 
@@ -602,8 +608,9 @@ class TestNoConfidence(unittest.TestCase):
         results = election.compute_results()
         self.assertEqual(expected_winners, results.candidates_elected)
 
+
 class TestTiebreaks(unittest.TestCase):
-    
+
     def test_bulk_elimination(self):
         """Tests a 4 candidate election for 2 seats.
 
@@ -846,6 +853,7 @@ class TestTiebreaks(unittest.TestCase):
                             random_alphanumeric=tiebreak_alphanumeric)
         results = election.compute_results()
         self.assertEqual(expected_winners, results.candidates_elected)
+
 
 class TestLargeElections(unittest.TestCase):
 

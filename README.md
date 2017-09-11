@@ -1,4 +1,7 @@
 # CMU Fair Ranked Voting
+
+[![CircleCI](https://circleci.com/gh/CMU-Senate/fair-ranked-voting.svg?style=svg)](https://circleci.com/gh/CMU-Senate/fair-ranked-voting)
+
 The reference implementation of the [single transferable vote](https://en.wikipedia.org/wiki/Single_transferable_vote) (STV) system used for [student government elections](https://stugov.andrew.cmu.edu/elections) at [Carnegie Mellon University](https://www.cmu.edu).
 
 ## Usage

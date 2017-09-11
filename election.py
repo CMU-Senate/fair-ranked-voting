@@ -384,7 +384,8 @@ class ElectionRound:
         Returns:
             String containing the printable representation of the ElectionRound.
         """
-        return 'ElectionRound(threshold={!r}, candidates_elected={!r}, candidates_eliminated={!r}, random_tiebreak_occurred={}, vote_tracker={!r})'.format(self.threshold, self.candidates_elected, self.candidates_eliminated, self.random_tiebreak_occurred, self.vote_tracker)
+        return 'ElectionRound(threshold={!r}, candidates_elected={!r}, candidates_eliminated={!r}, random_tiebreak_occurred={}, vote_tracker={!r})'.format(
+            self.threshold, self.candidates_elected, self.candidates_eliminated, self.random_tiebreak_occurred, self.vote_tracker)
 
     def description(self):
         """Returns a printable long-form user representation of the
@@ -451,7 +452,8 @@ class ElectionResults:
             String containing the printable representation of the
             ElectionResults.
         """
-        return 'ElectionResults(name={!r}, seats={!r}, ballots={!r}, random_alphanumeric={!r}, candidates_elected={!r}, election_rounds={!r})'.format(self.name, self.seats, self.ballots, self.random_alphanumeric, self.candidates_elected, self.election_rounds)
+        return 'ElectionResults(name={!r}, seats={!r}, ballots={!r}, random_alphanumeric={!r}, candidates_elected={!r}, election_rounds={!r})'.format(
+                    self.name, self.seats, self.ballots, self.random_alphanumeric, self.candidates_elected, self.election_rounds)
 
     def description(self):
         """Returns a printable long-form user representation of the
@@ -572,8 +574,8 @@ class Election:
                     # If candidate has not been elected or eliminated, break.
                     candidate = ballot.preferred_active_candidate()
                     if (candidate is None or
-                        candidate not in candidates_elected and
-                        candidate not in candidates_eliminated):
+                            candidate not in candidates_elected and
+                            candidate not in candidates_eliminated):
                         break
 
                     # Otherwise, remove the candidate from the ballot.
@@ -582,12 +584,12 @@ class Election:
                 # Ensure that vote tracker contains every active candidate
                 for candidate in ballot.candidates:
                     if (candidate not in candidates_elected and
-                        candidate not in candidates_eliminated):
+                            candidate not in candidates_eliminated):
                         vote_tracker.cast_vote_for_candidate(candidate, 0.0)
 
                 # If ballot has no active candidates, it is exhausted.
                 candidate = ballot.preferred_active_candidate()
-                if candidate == None:
+                if candidate is None:
                     ballots_to_exhaust.append(ballot)
 
                 # If ballot has no value, it is exhausted.
@@ -725,8 +727,8 @@ class Election:
                             # Update ballots
                             candidate = ballot.preferred_active_candidate()
                             if (candidate is None or
-                                candidate not in candidates_elected and
-                                candidate not in candidates_eliminated):
+                                    candidate not in candidates_elected and
+                                    candidate not in candidates_eliminated):
                                 break
 
                             # Otherwise, remove the candidate from the ballot.
@@ -735,7 +737,7 @@ class Election:
                         # Ensure that vote tracker contains every active candidate
                         for candidate in ballot.candidates:
                             if (candidate not in candidates_elected and
-                                candidate not in candidates_eliminated):
+                                    candidate not in candidates_eliminated):
                                 forward_vote_tracker.cast_vote_for_candidate(candidate, 0.0)
 
                         candidate = ballot.preferred_active_candidate()

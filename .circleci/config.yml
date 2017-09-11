@@ -9,7 +9,7 @@ jobs:
 
       - run:
           name: install testing dependencies
-          command: pip install coverage flake8
+          command: sudo pip install coverage flake8
 
       - run:
           name: run tests

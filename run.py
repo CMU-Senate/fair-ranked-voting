@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
 # run.py: Provides an interface to input ballots and run elections.
 # Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
 # Created by Devin Gund.
@@ -19,6 +20,7 @@
 import argparse
 import csv
 import re
+import urllib.request
 
 from election import Ballot, Candidate, Election, NoConfidence
 
@@ -197,6 +199,20 @@ def ballots_from_file(filename):
         raise ValueError('Invalid filetype. Accepts .csv, .txt.')
 
 
+def ballots_from_url(url):
+    """Returns Ballots from URL pointing to CSV file.
+
+    Args:
+        url: The URL to a CSV file containing the user input.
+
+    Returns:
+        List of Ballots representing user input.
+    """
+
+    filename, _ = urllib.request.urlretrieve(url)
+    return ballots_from_csv(filename)
+
+
 def parse_args():
     """Parses command-line election arguments.
 
@@ -218,8 +234,8 @@ def parse_args():
     parser.add_argument('-a', '--alphanumeric',
                         help='Alphanumeric string for breaking ties')
 
-    # File containing ballots
-    parser.add_argument('-b', '--ballots', help='File containing ballots')
+    # File/URL containing ballots
+    parser.add_argument('-b', '--ballots', help='File/URL containing ballots')
 
     # Disallow No Confidence from being eliminated
     parser.add_argument('-c', '--disallow-nc-elimination',
@@ -250,7 +266,10 @@ def process_args(args):
         argparse.Namespace containing election arguments.
     """
     if args.ballots is not None:
-        ballots = ballots_from_file(args.ballots)
+        if args.ballots.startswith('http'):
+            ballots = ballots_from_url(args.ballots)
+        else:
+            ballots = ballots_from_file(args.ballots)
     else:
         ballots = ballots_from_input()
 

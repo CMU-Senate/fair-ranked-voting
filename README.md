@@ -16,7 +16,7 @@ optional arguments:
   -a ALPHANUMERIC, --alphanumeric ALPHANUMERIC
                         Alphanumeric string for breaking ties
   -b BALLOTS, --ballots BALLOTS
-                        File containing ballots
+                        File/URL containing ballots
   -c, --disallow-nc-elimination
                         No Confidence cannot be eliminated
   -n NAME, --name NAME  Name of election

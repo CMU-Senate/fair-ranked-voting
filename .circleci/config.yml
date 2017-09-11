@@ -8,17 +8,17 @@ jobs:
       - checkout
 
       - run:
-          name: install testing dependencies
+          name: Install testing dependencies
           command: sudo pip install coverage flake8
 
       - run:
-          name: run tests
+          name: Run tests
           command: |
             coverage run tests.py -v
             coverage html --include=election.py,tests.py,run.py --fail-under 85
 
       - run:
-          name: check style
+          name: Check style
           command: flake8 --config=.flake8 *.py
 
       - store_artifacts:

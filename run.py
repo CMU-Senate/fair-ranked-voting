@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
 
-# run.py: Provides an interface to input ballots and run elections.
-# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
-# Created by Devin Gund.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""Provides an interface to input ballots and run elections."""
 
 import argparse
 import csv
@@ -23,6 +8,12 @@ import re
 import urllib.request
 
 from election import Ballot, Candidate, Election, NoConfidence
+
+__author__ = "Devin Gund"
+__copyright__ = "Copyright 2017, Carnegie Mellon University Undergraduate Student Senate"
+__credits__ = ["Sushain Cherivirala"]
+__license__ = "GPLv3"
+__status__ = "Production"
 
 # String representing the input for No Confidence
 NC_STRING = 'No Confidence'

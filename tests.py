@@ -1,25 +1,17 @@
-#!/usr/bin/python3
-# tests.py: Unit tests for election.py.
-# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
-# Created by Devin Gund.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#!/usr/bin/env python3
+
+"""Unit tests for election.py."""
 
 from __future__ import print_function
 import unittest
 
 from election import Ballot, Candidate, Election, NoConfidence
+
+__author__ = "Devin Gund"
+__copyright__ = "Copyright 2017, Carnegie Mellon University Undergraduate Student Senate"
+__credits__ = ["Sushain Cherivirala"]
+__license__ = "GPLv3"
+__status__ = "Production"
 
 
 def candidates_for_ids(candidate_ids):

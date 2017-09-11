@@ -1326,5 +1326,6 @@ class TestLargeElections(unittest.TestCase):
         results = election.compute_results()
         self.assertEqual(expected_winners, results.candidates_elected)
 
+
 if __name__ == '__main__':
     unittest.main()

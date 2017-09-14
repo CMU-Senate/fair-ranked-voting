@@ -1,0 +1,26 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6.1
+    working_directory: ~/fair-ranked-voting
+    steps:
+      - checkout
+
+      - run:
+          name: Install testing dependencies
+          command: sudo pip install coverage flake8
+
+      - run:
+          name: Run tests
+          command: |
+            coverage run tests.py -v
+            coverage html --include=election.py,tests.py,run.py --fail-under 85
+
+      - run:
+          name: Check style
+          command: flake8 --config=.flake8 *.py
+
+      - store_artifacts:
+          path: htmlcov
+          destination: coverage

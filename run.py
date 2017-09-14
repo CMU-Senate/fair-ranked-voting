@@ -1,31 +1,26 @@
-#!/usr/bin/python3
-# run.py: Provides an interface to input ballots and run elections.
-# Copyright (C) 2017 Carnegie Mellon University Undergraduate Student Senate.
-# Created by Devin Gund.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#!/usr/bin/env python3
 
-from election import *
+"""Provides an interface to input ballots and run elections."""
+
 import argparse
 import csv
 import re
+import urllib.request
+
+from election import Ballot, Candidate, Election, NoConfidence
+
+__author__ = "Devin Gund"
+__copyright__ = "Copyright 2017, Carnegie Mellon University Undergraduate Student Senate"
+__credits__ = ["Sushain Cherivirala"]
+__license__ = "GPLv3"
+__status__ = "Production"
 
 # String representing the input for No Confidence
 NC_STRING = 'No Confidence'
 
 # String representing the abbreviated input for No Confidence
 NC_STRING_SHORT = 'NC'
+
 
 def input_string_is_no_confidence(candidate_input):
     """Checks if an input string represents No Confidence.
@@ -37,8 +32,9 @@ def input_string_is_no_confidence(candidate_input):
     Returns:
         Boolean indicating if the input string represents No Confidence or not.
     """
-    return (candidate_input.lower() == NC_STRING.lower()
-            or candidate_input.lower() == NC_STRING_SHORT.lower())
+    return (candidate_input.lower() == NC_STRING.lower() or
+            candidate_input.lower() == NC_STRING_SHORT.lower())
+
 
 def candidate_from_input(candidate_input):
     """Returns a Candidate representing the input string.
@@ -56,13 +52,14 @@ def candidate_from_input(candidate_input):
         expr = '(.*?)\s*\((.*?)\)'
         regex = re.compile(expr)
         result = regex.match(candidate_input)
-        if result != None:
+        if result is not None:
             uid = result.group(1)
             name = result.group(2)
         else:
             uid = candidate_input
             name = None
         return Candidate(uid, name=name)
+
 
 def ballot_from_candidate_inputs(candidate_inputs):
     """Returns a Ballot of Candidates representing the input strings.
@@ -83,6 +80,7 @@ def ballot_from_candidate_inputs(candidate_inputs):
             candidates.append(candidate)
     ballot = Ballot(candidates=candidates)
     return ballot
+
 
 def ballots_from_input():
     """Return Ballots from command-line user input.
@@ -128,6 +126,7 @@ def ballots_from_input():
             ballots.append(ballot)
             ballot_number += 1
 
+
 def ballots_from_csv(filename):
     """Return Ballots from CSV user input.
 
@@ -152,6 +151,7 @@ def ballots_from_csv(filename):
     f.close()
     return ballots
 
+
 def ballots_from_txt(filename):
     """Return Ballots from TXT user input.
 
@@ -172,6 +172,7 @@ def ballots_from_txt(filename):
     f.close()
     return ballots
 
+
 def ballots_from_file(filename):
     """Return Ballots from file user input.
 
@@ -188,6 +189,21 @@ def ballots_from_file(filename):
     else:
         raise ValueError('Invalid filetype. Accepts .csv, .txt.')
 
+
+def ballots_from_url(url):
+    """Returns Ballots from URL pointing to CSV file.
+
+    Args:
+        url: The URL to a CSV file containing the user input.
+
+    Returns:
+        List of Ballots representing user input.
+    """
+
+    filename, _ = urllib.request.urlretrieve(url)
+    return ballots_from_csv(filename)
+
+
 def parse_args():
     """Parses command-line election arguments.
 
@@ -200,31 +216,31 @@ def parse_args():
                    'candidate is \'uid\' or optionally \'uid (name)\'.')
     parser = argparse.ArgumentParser(description=description)
     required_group = parser.add_argument_group('required arguments')
-    
+
     # Number of seats (required)
-    required_group.add_argument('-s','--seats', help='Number of seats',
+    required_group.add_argument('-s', '--seats', help='Number of seats',
                                 type=int, required=True)
 
     # Alphanumeric string for breaking ties
-    parser.add_argument('-a','--alphanumeric',
+    parser.add_argument('-a', '--alphanumeric',
                         help='Alphanumeric string for breaking ties')
-    
-    # File containing ballots
-    parser.add_argument('-b','--ballots', help='File containing ballots')
-    
+
+    # File/URL containing ballots
+    parser.add_argument('-b', '--ballots', help='File/URL containing ballots')
+
     # Disallow No Confidence from being eliminated
-    parser.add_argument('-c','--disallow-nc-elimination',
+    parser.add_argument('-c', '--disallow-nc-elimination',
                         help='No Confidence cannot be eliminated',
                         action='store_true')
-    
+
     # Name of Election
-    parser.add_argument('-n','--name', help='Name of election', default='')
-    
+    parser.add_argument('-n', '--name', help='Name of election', default='')
+
     # Disallow random tiebreaks, ending the election instead
-    parser.add_argument('-r','--disallow-random-tiebreak',
+    parser.add_argument('-r', '--disallow-random-tiebreak',
                         help='Halt election instead of using random tiebreak',
                         action='store_true')
-    
+
     # Verbose printing of election results
     parser.add_argument('-v', '--verbose',
                         help='Verbose printing of election results',
@@ -233,14 +249,18 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 def process_args(args):
     """Processes command-line election arguments and runs election.
 
     Args:
         argparse.Namespace containing election arguments.
     """
-    if args.ballots != None:
-        ballots = ballots_from_file(args.ballots)
+    if args.ballots is not None:
+        if args.ballots.startswith('http'):
+            ballots = ballots_from_url(args.ballots)
+        else:
+            ballots = ballots_from_file(args.ballots)
     else:
         ballots = ballots_from_input()
 
